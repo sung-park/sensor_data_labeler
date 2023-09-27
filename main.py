@@ -1,5 +1,11 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QAction, QFileDialog
+from PyQt5.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QAction,
+    QFileDialog,
+    QLabel,
+)
 from PyQt5.QtGui import QIcon
 import pandas as pd
 from pyqtgraph import PlotWidget
@@ -12,8 +18,6 @@ class MyApp(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        # self.textEdit = QTextEdit()
-        # self.setCentralWidget(self.textEdit)
         self.statusBar()
 
         openFile = QAction(QIcon("open.png"), "Open", self)
@@ -28,6 +32,7 @@ class MyApp(QMainWindow):
 
         self.setWindowTitle("File Dialog")
         self.setGeometry(300, 300, 640, 480)
+
         self.show()
 
     def showDialog(self):
@@ -40,21 +45,19 @@ class MyApp(QMainWindow):
 
             self.plot_data()
 
-            # f = open(fname[0], "r")
-
-            # with f:
-            #     data = f.read()
-            #     self.textEdit.setText(data)
-
     def plot_data(self):
-        self.plot_widget = PlotWidget()
-        self.plot_widget.setLabel("left", "Y축")
-        self.plot_widget.setLabel("bottom", "X축")
+        self.plot_widget = PlotWidget(axisItems={"bottom": pg.DateAxisItem()})
+        self.plot_widget.setLabel("left", "acc (x:red, y:green, z:blue)")
+        self.plot_widget.setLabel("bottom", "time")
+        x_data = self.sensor_df["timestamp"] / 1000.0
+        y_acc_x_data = self.sensor_df[" acc_x"]
+        y_acc_y_data = self.sensor_df[" acc_y"]
+        y_acc_z_data = self.sensor_df[" acc_z"]
 
-        x = self.sensor_df["timestamp"]
-        y = self.sensor_df[" acc_x"]
+        self.plot_widget.plot(x_data, y_acc_x_data, pen="r")
+        self.plot_widget.plot(x_data, y_acc_y_data, pen="g")
+        self.plot_widget.plot(x_data, y_acc_z_data, pen="b")
 
-        self.plot_widget.plot(x, y, pen=pg.mkPen("b"))
         self.setCentralWidget(self.plot_widget)
 
 
