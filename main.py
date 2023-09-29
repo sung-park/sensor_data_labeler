@@ -183,6 +183,10 @@ class MyApp(QMainWindow):
         self.plot_data()
         self.open_video_file(video_filename)
 
+        # Trick to display the first frame of a video
+        self.play()
+        self.play()
+
     def open_video_file(self, fileName: str):
         self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
         self.playButton.setEnabled(True)
