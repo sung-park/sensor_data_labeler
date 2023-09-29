@@ -194,7 +194,12 @@ class MyApp(QMainWindow):
         self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
         self.playButton.setEnabled(True)
 
+    plot_widget: PlotWidget = None
+
     def plot_data(self):
+        if self.plot_widget:
+            self.main_layout.removeWidget(self.plot_widget)
+
         self.plot_widget = PlotWidget(axisItems={"bottom": pg.DateAxisItem()})
         self.plot_widget.setLabel("left", "Acc (X:Red, Y:Green, Z:Blue)")
         self.plot_widget.setLabel("bottom", "Time")
