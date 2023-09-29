@@ -21,6 +21,7 @@ import pyqtgraph as pg
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtCore import QDir, Qt, QUrl
+from pyqtgraph import InfiniteLine
 
 
 class MyApp(QMainWindow):
@@ -56,6 +57,8 @@ class MyApp(QMainWindow):
         self.show()
 
     def createViewPlayer(self):
+        print("createViewPlayer...")
+
         self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
 
         videoWidget = QVideoWidget()
@@ -72,25 +75,14 @@ class MyApp(QMainWindow):
         self.errorLabel = QLabel()
         self.errorLabel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
 
-        # Create new action
-        # openAction = QAction(QIcon("open.png"), "&Open", self)
-        # openAction.setShortcut("Ctrl+O")
-        # openAction.setStatusTip("Open movie")
-        # openAction.triggered.connect(self.openFile)
+        self.currentTimeLabel = QLabel()
+        self.currentTimeLabel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
 
         # Create exit action
         exitAction = QAction(QIcon("exit.png"), "&Exit", self)
         exitAction.setShortcut("Ctrl+Q")
         exitAction.setStatusTip("Exit application")
         exitAction.triggered.connect(self.exitCall)
-
-        # Create menu bar and add action
-        # menuBar = self.menuBar()
-        # fileMenu = menuBar.addMenu("&File")
-
-        # fileMenu.addAction(newAction)
-        # fileMenu.addAction(openAction)
-        # fileMenu.addAction(exitAction)
 
         # Create a widget for window contents
         wid = QWidget(self)
@@ -106,6 +98,7 @@ class MyApp(QMainWindow):
         layout.addWidget(videoWidget)
         layout.addLayout(controlLayout)
         layout.addWidget(self.errorLabel)
+        layout.addWidget(self.currentTimeLabel)
 
         # Set widget to contain window contents
         wid.setLayout(layout)
@@ -135,7 +128,17 @@ class MyApp(QMainWindow):
             self.playButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
 
     def positionChanged(self, position):
+        seconds = position / 1000
+        minutes, seconds = divmod(seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+        timeStr = "{:02}:{:02}:{:02}.{:03}".format(
+            int(hours), int(minutes), int(seconds), int(position % 1000)
+        )
+        self.currentTimeLabel.setText(timeStr)
+
         self.positionSlider.setValue(position)
+
+        self.update_plot_progress(position)
 
     def durationChanged(self, duration):
         self.positionSlider.setRange(0, duration)
@@ -191,17 +194,10 @@ class MyApp(QMainWindow):
         self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
         self.playButton.setEnabled(True)
 
-    # def openFile(self):
-    #     fileName, _ = QFileDialog.getOpenFileName(self, "Open Movie", QDir.homePath())
-
-    #     if fileName != "":
-    #         self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
-    #         self.playButton.setEnabled(True)
-
     def plot_data(self):
         self.plot_widget = PlotWidget(axisItems={"bottom": pg.DateAxisItem()})
-        self.plot_widget.setLabel("left", "acc (x:red, y:green, z:blue)")
-        self.plot_widget.setLabel("bottom", "time")
+        self.plot_widget.setLabel("left", "Acc (X:Red, Y:Green, Z:Blue)")
+        self.plot_widget.setLabel("bottom", "Time")
 
         self.plot_widget.plot(self.x_data, self.y_acc_x_data, pen="r")
         self.plot_widget.plot(self.x_data, self.y_acc_y_data, pen="g")
@@ -221,9 +217,19 @@ class MyApp(QMainWindow):
         )
         self.plot_widget.plotItem.setMouseEnabled(y=False)
 
+        self.plot_widget_data_start_timestamp = self.x_data.min()
+        self.plot_widget_progress_line = InfiniteLine(
+            pos=(self.plot_widget_data_start_timestamp, 0), angle=90, pen="#eb34d5"
+        )
+        self.plot_widget.addItem(self.plot_widget_progress_line)
+
         self.plot_widget.showGrid(x=True, y=False)
         # self.setCentralWidget(self.plot_widget)
         self.main_layout.addWidget(self.plot_widget)
+
+    def update_plot_progress(self, position):
+        current_progress = self.plot_widget_data_start_timestamp + (position / 1000)
+        self.plot_widget_progress_line.setPos(current_progress)
 
 
 class VideoPlayer(QWidget):
