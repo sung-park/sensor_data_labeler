@@ -1,4 +1,5 @@
 import sys
+from PyQt5 import QtGui
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -12,6 +13,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
     QHBoxLayout,
     QVBoxLayout,
+    QMessageBox,
 )
 from PyQt5.QtGui import QIcon
 import pandas as pd
@@ -21,7 +23,8 @@ import pyqtgraph as pg
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtCore import QDir, Qt, QUrl
-from pyqtgraph import InfiniteLine
+from pyqtgraph import InfiniteLine, TextItem
+from PyQt5.QtGui import QKeyEvent
 
 
 class MyApp(QMainWindow):
@@ -196,6 +199,12 @@ class MyApp(QMainWindow):
 
     plot_widget: PlotWidget = None
 
+    new_poi_start_line: InfiniteLine = None
+    new_poi_start_text: TextItem = None
+
+    new_poi_end_line: InfiniteLine = None
+    new_poi_end_text: TextItem = None
+
     def plot_data(self):
         if self.plot_widget:
             self.main_layout.removeWidget(self.plot_widget)
@@ -226,15 +235,109 @@ class MyApp(QMainWindow):
         self.plot_widget_progress_line = InfiniteLine(
             pos=(self.plot_widget_data_start_timestamp, 0), angle=90, pen="#eb34d5"
         )
+        self.plot_widget_progress_text = TextItem(text="Video Sync", color="#eb34d5")
+        self.plot_widget_progress_text.setPos(self.plot_widget_data_start_timestamp, 0)
+
         self.plot_widget.addItem(self.plot_widget_progress_line)
+        self.plot_widget.addItem(self.plot_widget_progress_text)
+
+        self.plot_widget.scene().sigMouseClicked.connect(self.mouse_clicked)
 
         self.plot_widget.showGrid(x=True, y=False)
         # self.setCentralWidget(self.plot_widget)
         self.main_layout.addWidget(self.plot_widget)
 
+    def mouse_clicked(self, evt):
+        print(evt)
+
     def update_plot_progress(self, position):
-        current_progress = self.plot_widget_data_start_timestamp + (position / 1000)
-        self.plot_widget_progress_line.setPos(current_progress)
+        self.current_progress = self.plot_widget_data_start_timestamp + (
+            position / 1000
+        )
+        self.plot_widget_progress_line.setPos(self.current_progress)
+        self.plot_widget_progress_text.setPos(self.current_progress, 0)
+
+    # TODO: The code of onPoiStartPressed and onPoiStopPressed overlaps a lot and needs refactoring.
+    def onPoiStartPressed(self):
+        # print("onPoiStartPressed...")
+
+        if self.new_poi_start_line is None:
+            print("Create new POI start...")
+            self.new_poi_start_line = InfiniteLine(
+                pos=(self.current_progress, 0), angle=90, pen="#FFFFFF"
+            )
+            self.new_poi_start_text = TextItem("POI Start", color="#FFFFFF")
+            self.new_poi_start_text.setPos(self.current_progress, -5)
+
+            self.plot_widget.addItem(self.new_poi_start_line)
+            self.plot_widget.addItem(self.new_poi_start_text)
+        elif self.new_poi_start_line.getXPos() == self.current_progress:
+            print("Remove new POI start...")
+            self.plot_widget.removeItem(self.new_poi_start_line)
+            self.plot_widget.removeItem(self.new_poi_start_text)
+            self.new_poi_start_line = None
+            self.new_poi_start_text = None
+        else:
+            print("Update POI start position...")
+            self.new_poi_start_line.setPos(self.current_progress)
+            self.new_poi_start_text.setPos(self.current_progress, -5)
+
+    def onPoiStopPressed(self):
+        # print("onPoiStopPressed...")
+
+        if self.new_poi_end_line is None:
+            print("Create new POI end...")
+            self.new_poi_end_line = InfiniteLine(
+                pos=(self.current_progress, 0), angle=90, pen="#FFFFFF"
+            )
+            self.new_poi_end_text = TextItem("POI End", color="#FFFFFF")
+            self.new_poi_end_text.setPos(self.current_progress, -10)
+
+            self.plot_widget.addItem(self.new_poi_end_line)
+            self.plot_widget.addItem(self.new_poi_end_text)
+        elif self.new_poi_end_line.getXPos() == self.current_progress:
+            print("Remove new POI end...")
+            self.plot_widget.removeItem(self.new_poi_end_line)
+            self.plot_widget.removeItem(self.new_poi_end_text)
+            self.new_poi_end_line = None
+            self.new_poi_end_text = None
+        else:
+            print("Update POI end position...")
+            self.new_poi_end_line.setPos(self.current_progress)
+            self.new_poi_end_text.setPos(self.current_progress, -10)
+
+        if (
+            self.new_poi_start_line
+            and self.new_poi_end_line
+            and self.new_poi_end_line.getXPos() <= self.new_poi_start_line.getXPos()
+        ):
+            QMessageBox.about(
+                self, "Warning", "POI End time cannot be earlier than POI Start time."
+            )
+            self.plot_widget.removeItem(self.new_poi_end_line)
+            self.plot_widget.removeItem(self.new_poi_end_text)
+            self.new_poi_end_line = None
+            self.new_poi_end_text = None
+
+    def keyPressEvent(self, key_event: QKeyEvent) -> None:
+        pass
+        # if key_event.key() == Qt.Key.Key_S and not key_event.isAutoRepeat():
+        #     print("S pressed")
+
+        # if key_event.key() == Qt.Key.Key_E and not key_event.isAutoRepeat():
+        #     print("E pressed")
+
+    def keyReleaseEvent(self, key_event: QKeyEvent) -> None:
+        if key_event.key() == Qt.Key.Key_S and not key_event.isAutoRepeat():
+            self.onPoiStartPressed()
+            # print("S released")
+
+        if key_event.key() == Qt.Key.Key_E and not key_event.isAutoRepeat():
+            self.onPoiStopPressed()
+            # print("E released")
+
+        if key_event.key() == Qt.Key.Key_Space and not key_event.isAutoRepeat():
+            self.play()
 
 
 class VideoPlayer(QWidget):
