@@ -16,6 +16,8 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout,
     QMessageBox,
+    QDialog,
+    QListWidget,
 )
 from PyQt5.QtGui import QIcon, QColor, QDesktopServices
 import pandas as pd
@@ -313,6 +315,17 @@ class MyApp(QMainWindow):
     def onMarkPressed(self):
         print("onMarkPressed...")
 
+        items = ["Sleeping", "Walking", "Running", "Eating", "Drinking", "Barking"]
+
+        popup = PopupWindow(items)
+        result = popup.exec_()
+
+        if result == QDialog.Accepted:
+            selected_item = popup.selected_item
+            print("Selected item:", selected_item)
+        else:
+            return
+
         # y_min: -22.847815470229374 y_max 24.77754347022937
         y_min, y_max = self.plot_widget.getAxis("left").range
 
@@ -331,7 +344,7 @@ class MyApp(QMainWindow):
 
         self.plot_widget.addItem(roi)
 
-        text_item = pg.TextItem(text="Annotated", anchor=(0.5, 0.5), color="y")
+        text_item = pg.TextItem(text=selected_item, anchor=(0.5, 0.5), color="y")
         roi_rect = roi.boundingRect()
         text_item.setPos(
             self.roi_start.getXPos() + roi_rect.center().x(),
@@ -341,6 +354,9 @@ class MyApp(QMainWindow):
 
         roi.setAcceptedMouseButtons(PyQt5.QtCore.Qt.MouseButton.LeftButton)
         roi.sigClicked.connect(self.roi_mouse_clicked)
+
+        self.roi_start.clear()
+        self.roi_end.clear()
 
     def roi_mouse_clicked(self, evt):
         print(evt)
@@ -379,6 +395,34 @@ class MyApp(QMainWindow):
 
         if key_event.key() == Qt.Key.Key_Space and not key_event.isAutoRepeat():
             self.play()
+
+
+class PopupWindow(QDialog):
+    def __init__(self, items):
+        super().__init__()
+
+        self.setWindowTitle("Choose one behavior")
+        self.layout = QVBoxLayout()
+
+        self.list_widget = QListWidget()
+        self.list_widget.addItems(items)
+        self.layout.addWidget(self.list_widget)
+
+        self.select_button = QPushButton("Select")
+        self.select_button.clicked.connect(self.item_selected)
+        self.layout.addWidget(self.select_button)
+
+        self.setLayout(self.layout)
+
+        self.selected_item = None
+
+    def item_selected(self):
+        selected_items = self.list_widget.selectedItems()
+        if selected_items:
+            self.selected_item = selected_items[0].text()
+            self.accept()
+        else:
+            self.selected_item = None
 
 
 class VideoPlayer(QWidget):
