@@ -8,18 +8,11 @@ from PyQt5.QtWidgets import (
     QAction,
     QFileDialog,
     QWidget,
-    QPushButton,
-    QStyle,
-    QSlider,
-    QLabel,
-    QSizePolicy,
     QHBoxLayout,
-    QVBoxLayout,
     QMessageBox,
     QDialog,
-    QListWidget,
 )
-from PyQt5.QtGui import QIcon, QColor, QDesktopServices
+from PyQt5.QtGui import QIcon, QDesktopServices
 import pandas as pd
 from pyqtgraph import PlotWidget
 import pyqtgraph as pg
@@ -33,6 +26,7 @@ from LineInfoPair import LineInfoPair
 from PyQt5.QtGui import QMouseEvent
 
 from MediaPlayer import MediaPlayer
+from PopupWindow import PopupWindow
 
 
 class MyApp(QMainWindow):
@@ -306,34 +300,6 @@ class MyApp(QMainWindow):
 
         if key_event.key() == Qt.Key.Key_Space and not key_event.isAutoRepeat():
             self.media_player.play()
-
-
-class PopupWindow(QDialog):
-    def __init__(self, items):
-        super().__init__()
-
-        self.setWindowTitle("Choose one behavior")
-        self.layout = QVBoxLayout()
-
-        self.list_widget = QListWidget()
-        self.list_widget.addItems(items)
-        self.layout.addWidget(self.list_widget)
-
-        self.select_button = QPushButton("Select")
-        self.select_button.clicked.connect(self.item_selected)
-        self.layout.addWidget(self.select_button)
-
-        self.setLayout(self.layout)
-
-        self.selected_item = None
-
-    def item_selected(self):
-        selected_items = self.list_widget.selectedItems()
-        if selected_items:
-            self.selected_item = selected_items[0].text()
-            self.accept()
-        else:
-            self.selected_item = None
 
 
 if __name__ == "__main__":
