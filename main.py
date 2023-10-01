@@ -25,7 +25,6 @@ from pyqtgraph import PlotWidget
 import pyqtgraph as pg
 
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
-from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtCore import QDir, Qt, QUrl
 from pyqtgraph import InfiniteLine, TextItem
 from PyQt5.QtGui import QKeyEvent
@@ -33,8 +32,12 @@ from PyQt5.QtGui import QKeyEvent
 from LineInfoPair import LineInfoPair
 from PyQt5.QtGui import QMouseEvent
 
+from MediaPlayer import MediaPlayer
+
 
 class MyApp(QMainWindow):
+    media_player: MediaPlayer = None
+
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -73,103 +76,11 @@ class MyApp(QMainWindow):
         self.main_layout = QHBoxLayout()
         central_widget.setLayout(self.main_layout)
 
-        self.createViewPlayer()
+        self.media_player = MediaPlayer(
+            self.style(), self, self.main_layout, self.update_plot_progress
+        )
 
         self.show()
-
-    def createViewPlayer(self):
-        print("createViewPlayer...")
-
-        self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
-
-        videoWidget = QVideoWidget()
-
-        self.playButton = QPushButton()
-        self.playButton.setEnabled(False)
-        self.playButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
-        self.playButton.clicked.connect(self.play)
-
-        self.positionSlider = QSlider(Qt.Horizontal)
-        self.positionSlider.setRange(0, 0)
-        self.positionSlider.sliderMoved.connect(self.setPosition)
-
-        self.errorLabel = QLabel()
-        self.errorLabel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
-
-        self.currentTimeLabel = QLabel()
-        self.currentTimeLabel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
-
-        # Create exit action
-        exitAction = QAction(QIcon("exit.png"), "&Exit", self)
-        exitAction.setShortcut("Ctrl+Q")
-        exitAction.setStatusTip("Exit application")
-        exitAction.triggered.connect(self.exitCall)
-
-        # Create a widget for window contents
-        wid = QWidget(self)
-        self.main_layout.addWidget(wid)
-
-        # Create layouts to place inside widget
-        controlLayout = QHBoxLayout()
-        controlLayout.setContentsMargins(0, 0, 0, 0)
-        controlLayout.addWidget(self.playButton)
-        controlLayout.addWidget(self.positionSlider)
-
-        layout = QVBoxLayout()
-        layout.addWidget(videoWidget)
-        layout.addLayout(controlLayout)
-        layout.addWidget(self.errorLabel)
-        layout.addWidget(self.currentTimeLabel)
-
-        # Set widget to contain window contents
-        wid.setLayout(layout)
-
-        self.mediaPlayer.setVideoOutput(videoWidget)
-        self.mediaPlayer.stateChanged.connect(self.mediaStateChanged)
-        self.mediaPlayer.positionChanged.connect(self.positionChanged)
-        self.mediaPlayer.durationChanged.connect(self.durationChanged)
-        self.mediaPlayer.error.connect(self.handleError)
-
-    def play(self):
-        if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
-            self.mediaPlayer.pause()
-        else:
-            self.mediaPlayer.play()
-
-    def setPosition(self, position):
-        self.mediaPlayer.setPosition(position)
-
-    def exitCall(self):
-        sys.exit(app.exec_())
-
-    def mediaStateChanged(self, state):
-        if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
-            self.playButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
-        else:
-            self.playButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
-
-    def positionChanged(self, position):
-        seconds = position / 1000
-        minutes, seconds = divmod(seconds, 60)
-        hours, minutes = divmod(minutes, 60)
-        timeStr = "{:02}:{:02}:{:02}.{:03}".format(
-            int(hours), int(minutes), int(seconds), int(position % 1000)
-        )
-        self.currentTimeLabel.setText(timeStr)
-
-        self.positionSlider.setValue(position)
-
-        self.update_plot_progress(position)
-
-    def durationChanged(self, duration):
-        self.positionSlider.setRange(0, duration)
-
-    def setPosition(self, position):
-        self.mediaPlayer.setPosition(position)
-
-    def handleError(self):
-        self.playButton.setEnabled(False)
-        self.errorLabel.setText("Error: " + self.mediaPlayer.errorString())
 
     def open_keyboard_shortcuts_reference(self):
         url = QUrl(
@@ -214,12 +125,12 @@ class MyApp(QMainWindow):
         self.open_video_file(video_filename)
 
         # Trick to display the first frame of a video
-        self.play()
-        self.play()
+        self.media_player.play()
+        self.media_player.play()
 
     def open_video_file(self, fileName: str):
-        self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
-        self.playButton.setEnabled(True)
+        self.media_player.set_media(QMediaContent(QUrl.fromLocalFile(fileName)))
+        self.media_player.set_play_button_enabled(True)
 
     plot_widget: PlotWidget = None
 
@@ -278,7 +189,7 @@ class MyApp(QMainWindow):
         if delta < 0:
             delta = 0.0
 
-        self.mediaPlayer.setPosition(int(delta * 1000.0))
+        self.media_player.set_position(int(delta * 1000.0))
 
     def update_plot_progress(self, position):
         self.current_progress = self.plot_widget_data_start_timestamp + (
@@ -394,7 +305,7 @@ class MyApp(QMainWindow):
             self.onMarkPressed()
 
         if key_event.key() == Qt.Key.Key_Space and not key_event.isAutoRepeat():
-            self.play()
+            self.media_player.play()
 
 
 class PopupWindow(QDialog):
