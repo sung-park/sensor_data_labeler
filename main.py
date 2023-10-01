@@ -199,11 +199,11 @@ class MyApp(QMainWindow):
 
     plot_widget: PlotWidget = None
 
-    new_poi_start_line: InfiniteLine = None
-    new_poi_start_text: TextItem = None
+    new_roi_start_line: InfiniteLine = None
+    new_roi_start_text: TextItem = None
 
-    new_poi_end_line: InfiniteLine = None
-    new_poi_end_text: TextItem = None
+    new_roi_end_line: InfiniteLine = None
+    new_roi_end_text: TextItem = None
 
     def plot_data(self):
         if self.plot_widget:
@@ -257,77 +257,80 @@ class MyApp(QMainWindow):
         self.plot_widget_progress_line.setPos(self.current_progress)
         self.plot_widget_progress_text.setPos(self.current_progress, 0)
 
-    # TODO: The code of onPoiStartPressed and onPoiStopPressed overlaps a lot and needs refactoring.
+    # TODO: The code of onRoiStartPressed and onRoiStopPressed overlaps a lot and needs refactoring.
 
-    def onPoiStartPressed(self):
-        # print("onPoiStartPressed...")
+    def onRoiStartPressed(self):
+        # print("onRoiStartPressed...")
 
-        if self.new_poi_start_line is None:
-            print("Create new POI start...")
-            self.new_poi_start_line = InfiniteLine(
+        if self.new_roi_start_line is None:
+            print("Create new ROI start...")
+            self.new_roi_start_line = InfiniteLine(
                 pos=(self.current_progress, 0), angle=90, pen="#FFFFFF"
             )
-            self.new_poi_start_text = TextItem("POI Start", color="#FFFFFF")
-            self.new_poi_start_text.setPos(self.current_progress, -5)
+            self.new_roi_start_text = TextItem("ROI Start", color="#FFFFFF")
+            self.new_roi_start_text.setPos(self.current_progress, -5)
 
-            self.plot_widget.addItem(self.new_poi_start_line)
-            self.plot_widget.addItem(self.new_poi_start_text)
-        elif self.new_poi_start_line.getXPos() == self.current_progress:
-            print("Remove new POI start...")
-            self.plot_widget.removeItem(self.new_poi_start_line)
-            self.plot_widget.removeItem(self.new_poi_start_text)
-            self.new_poi_start_line = None
-            self.new_poi_start_text = None
+            self.plot_widget.addItem(self.new_roi_start_line)
+            self.plot_widget.addItem(self.new_roi_start_text)
+        elif self.new_roi_start_line.getXPos() == self.current_progress:
+            print("Remove new ROI start...")
+            self.plot_widget.removeItem(self.new_roi_start_line)
+            self.plot_widget.removeItem(self.new_roi_start_text)
+            self.new_roi_start_line = None
+            self.new_roi_start_text = None
         else:
-            print("Update POI start position...")
-            self.new_poi_start_line.setPos(self.current_progress)
-            self.new_poi_start_text.setPos(self.current_progress, -5)
+            print("Update ROI start position...")
+            self.new_roi_start_line.setPos(self.current_progress)
+            self.new_roi_start_text.setPos(self.current_progress, -5)
 
-        self.validatePoiPosition()
+        self.validateRoiPosition()
 
-    def onPoiStopPressed(self):
-        # print("onPoiStopPressed...")
+    def onRoiStopPressed(self):
+        # print("onRoiStopPressed...")
 
-        if self.new_poi_end_line is None:
-            print("Create new POI end...")
-            self.new_poi_end_line = InfiniteLine(
+        if self.new_roi_end_line is None:
+            print("Create new ROI end...")
+            self.new_roi_end_line = InfiniteLine(
                 pos=(self.current_progress, 0), angle=90, pen="#FFFFFF"
             )
-            self.new_poi_end_text = TextItem("POI End", color="#FFFFFF")
-            self.new_poi_end_text.setPos(self.current_progress, -10)
+            self.new_roi_end_text = TextItem("ROI End", color="#FFFFFF")
+            self.new_roi_end_text.setPos(self.current_progress, -10)
 
-            self.plot_widget.addItem(self.new_poi_end_line)
-            self.plot_widget.addItem(self.new_poi_end_text)
-        elif self.new_poi_end_line.getXPos() == self.current_progress:
-            print("Remove new POI end...")
-            self.plot_widget.removeItem(self.new_poi_end_line)
-            self.plot_widget.removeItem(self.new_poi_end_text)
-            self.new_poi_end_line = None
-            self.new_poi_end_text = None
+            self.plot_widget.addItem(self.new_roi_end_line)
+            self.plot_widget.addItem(self.new_roi_end_text)
+        elif self.new_roi_end_line.getXPos() == self.current_progress:
+            print("Remove new ROI end...")
+            self.plot_widget.removeItem(self.new_roi_end_line)
+            self.plot_widget.removeItem(self.new_roi_end_text)
+            self.new_roi_end_line = None
+            self.new_roi_end_text = None
         else:
-            print("Update POI end position...")
-            self.new_poi_end_line.setPos(self.current_progress)
-            self.new_poi_end_text.setPos(self.current_progress, -10)
+            print("Update ROI end position...")
+            self.new_roi_end_line.setPos(self.current_progress)
+            self.new_roi_end_text.setPos(self.current_progress, -10)
 
-        self.validatePoiPosition()
+        self.validateRoiPosition()
 
-    def validatePoiPosition(self):
+    def onMarkPressed(self):
+        print("onMarkPressed...")
+
+    def validateRoiPosition(self):
         if (
-            self.new_poi_start_line
-            and self.new_poi_end_line
-            and self.new_poi_end_line.getXPos() <= self.new_poi_start_line.getXPos()
+            self.new_roi_start_line
+            and self.new_roi_end_line
+            and self.new_roi_end_line.getXPos() <= self.new_roi_start_line.getXPos()
         ):
             QMessageBox.about(
-                self, "Warning", "POI End time cannot be earlier than POI Start time."
+                self, "Warning", "ROI End time cannot be earlier than ROI Start time."
             )
-            self.plot_widget.removeItem(self.new_poi_start_line)
-            self.plot_widget.removeItem(self.new_poi_start_text)
-            self.plot_widget.removeItem(self.new_poi_end_line)
-            self.plot_widget.removeItem(self.new_poi_end_text)
-            self.new_poi_start_line = None
-            self.new_poi_start_text = None
-            self.new_poi_end_line = None
-            self.new_poi_end_text = None
+            self.plot_widget.removeItem(self.new_roi_start_line)
+            self.plot_widget.removeItem(self.new_roi_start_text)
+            self.plot_widget.removeItem(self.new_roi_end_line)
+            self.plot_widget.removeItem(self.new_roi_end_text)
+            self.new_roi_start_line = None
+            self.new_roi_start_text = None
+            self.new_roi_end_line = None
+            self.new_roi_end_text = None
 
     def keyPressEvent(self, key_event: QKeyEvent) -> None:
         pass
@@ -339,12 +342,15 @@ class MyApp(QMainWindow):
 
     def keyReleaseEvent(self, key_event: QKeyEvent) -> None:
         if key_event.key() == Qt.Key.Key_S and not key_event.isAutoRepeat():
-            self.onPoiStartPressed()
+            self.onRoiStartPressed()
             # print("S released")
 
         if key_event.key() == Qt.Key.Key_E and not key_event.isAutoRepeat():
-            self.onPoiStopPressed()
+            self.onRoiStopPressed()
             # print("E released")
+
+        if key_event.key() == Qt.Key.Key_M and not key_event.isAutoRepeat():
+            self.onMarkPressed()
 
         if key_event.key() == Qt.Key.Key_Space and not key_event.isAutoRepeat():
             self.play()
