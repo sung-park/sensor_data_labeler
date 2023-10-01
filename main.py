@@ -170,7 +170,7 @@ class MyApp(QMainWindow):
 
     def open_keyboard_shortcuts_reference(self):
         url = QUrl(
-            "https://github.com/sung-park/sensor_data_labeler/blob/main/README.md"
+            "https://github.com/sung-park/sensor_data_labeler/blob/main/SHORTCUTS_REF.md"
         )
         QDesktopServices.openUrl(url)
 
