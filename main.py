@@ -1,3 +1,4 @@
+from datetime import datetime
 import sys
 from PyQt5 import QtGui
 import PyQt5
@@ -238,8 +239,9 @@ class MyApp(QMainWindow):
         self.plot_widget_progress_line = InfiniteLine(
             pos=(self.plot_widget_data_start_timestamp, 0), angle=90, pen="#eb34d5"
         )
+        y_min, y_max = self.plot_widget.getAxis("left").range
         self.plot_widget_progress_text = TextItem(text="Video Sync", color="#eb34d5")
-        self.plot_widget_progress_text.setPos(self.plot_widget_data_start_timestamp, 0)
+        # self.plot_widget_progress_text.setPos(y_max - 10, 0)
 
         self.plot_widget.addItem(self.plot_widget_progress_line)
         self.plot_widget.addItem(self.plot_widget_progress_text)
@@ -259,7 +261,14 @@ class MyApp(QMainWindow):
             position / 1000
         )
         self.plot_widget_progress_line.setPos(self.current_progress)
-        self.plot_widget_progress_text.setPos(self.current_progress, 0)
+        y_min, y_max = self.plot_widget.getAxis("left").range
+        self.plot_widget_progress_text.setPos(self.current_progress, y_max - 2)
+
+        datetime_obj = datetime.fromtimestamp(self.current_progress)
+        formatted_datetime = datetime_obj.strftime("%H:%M:%S.%f")[
+            :-3
+        ] + datetime_obj.strftime(" %Y-%m-%d")
+        self.plot_widget_progress_text.setText(formatted_datetime)
 
     def onRoiStartPressed(self):
         if not self.roi_start.is_marked():
