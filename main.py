@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QMessageBox,
 )
-from PyQt5.QtGui import QIcon, QColor
+from PyQt5.QtGui import QIcon, QColor, QDesktopServices
 import pandas as pd
 from pyqtgraph import PlotWidget
 import pyqtgraph as pg
@@ -41,15 +41,26 @@ class MyApp(QMainWindow):
 
         self.statusBar()
 
+        menubar = self.menuBar()
+        menubar.setNativeMenuBar(False)
+
         openFile = QAction(QIcon("open.png"), "Open", self)
         openFile.setShortcut("Ctrl+O")
         openFile.setStatusTip("Open New File")
         openFile.triggered.connect(self.showDialog)
 
-        menubar = self.menuBar()
-        menubar.setNativeMenuBar(False)
         fileMenu = menubar.addMenu("&File")
         fileMenu.addAction(openFile)
+
+        keyboard_shortcuts_reference = QAction(
+            QIcon("open.png"), "Keyboard Shortcuts Reference", self
+        )
+        keyboard_shortcuts_reference.triggered.connect(
+            self.open_keyboard_shortcuts_reference
+        )
+
+        helpMenu = menubar.addMenu("&Help")
+        helpMenu.addAction(keyboard_shortcuts_reference)
 
         self.setWindowTitle("PX Sensor Data Labeler")
         self.setGeometry(300, 300, 1536, 576)
@@ -156,6 +167,12 @@ class MyApp(QMainWindow):
     def handleError(self):
         self.playButton.setEnabled(False)
         self.errorLabel.setText("Error: " + self.mediaPlayer.errorString())
+
+    def open_keyboard_shortcuts_reference(self):
+        url = QUrl(
+            "https://github.com/sung-park/sensor_data_labeler/blob/main/README.md"
+        )
+        QDesktopServices.openUrl(url)
 
     def showDialog(self):
         options = QFileDialog.Options()
