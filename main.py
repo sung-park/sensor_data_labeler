@@ -336,28 +336,6 @@ class PopupWindow(QDialog):
             self.selected_item = None
 
 
-class VideoPlayer(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Video Player")
-        self.setGeometry(100, 100, 800, 600)
-
-        self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
-        self.media_player.setVideoOutput(self)
-
-        self.play_button = QPushButton("Play")
-        self.play_button.clicked.connect(self.play_video)
-
-        self.slider = QSlider(Qt.Horizontal)
-        self.slider.setRange(0, 0)
-        self.slider.sliderMoved.connect(self.set_position)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.play_button)
-        layout.addWidget(self.slider)
-        self.setLayout(layout)
-
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     ex = MyApp()
