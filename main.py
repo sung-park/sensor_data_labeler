@@ -29,6 +29,7 @@ from pyqtgraph import InfiniteLine, TextItem
 from PyQt5.QtGui import QKeyEvent
 
 from LineInfoPair import LineInfoPair
+from PyQt5.QtGui import QMouseEvent
 
 
 class MyApp(QMainWindow):
@@ -263,15 +264,19 @@ class MyApp(QMainWindow):
         self.plot_widget.addItem(self.plot_widget_progress_line)
         self.plot_widget.addItem(self.plot_widget_progress_text)
 
-        self.plot_widget.scene().sigMouseClicked.connect(self.mouse_clicked)
+        self.plot_widget.scene().sigMouseClicked.connect(self.on_plot_widget_clicked)
 
         self.plot_widget.showGrid(x=True, y=False)
         # self.setCentralWidget(self.plot_widget)
         self.main_layout.addWidget(self.plot_widget)
 
-    def mouse_clicked(self, evt):
-        # print(evt)
-        pass
+    def on_plot_widget_clicked(self, event: QMouseEvent):
+        mouse_point = self.plot_widget.getPlotItem().vb.mapSceneToView(event.scenePos())
+        delta = mouse_point.x() - self.x_data.min()
+        if delta < 0:
+            delta = 0.0
+
+        self.mediaPlayer.setPosition(int(delta * 1000.0))
 
     def update_plot_progress(self, position):
         self.current_progress = self.plot_widget_data_start_timestamp + (
