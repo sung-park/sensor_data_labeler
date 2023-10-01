@@ -1,5 +1,6 @@
 import sys
 from PyQt5 import QtGui
+import PyQt5
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -15,7 +16,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QMessageBox,
 )
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QColor
 import pandas as pd
 from pyqtgraph import PlotWidget
 import pyqtgraph as pg
@@ -248,7 +249,8 @@ class MyApp(QMainWindow):
         self.main_layout.addWidget(self.plot_widget)
 
     def mouse_clicked(self, evt):
-        print(evt)
+        # print(evt)
+        pass
 
     def update_plot_progress(self, position):
         self.current_progress = self.plot_widget_data_start_timestamp + (
@@ -313,6 +315,38 @@ class MyApp(QMainWindow):
 
     def onMarkPressed(self):
         print("onMarkPressed...")
+
+        # y_min: -22.847815470229374 y_max 24.77754347022937
+        y_min, y_max = self.plot_widget.getAxis("left").range
+
+        roi = pg.RectROI(
+            [self.new_roi_start_line.getXPos(), y_min],
+            [
+                self.new_roi_end_line.getXPos() - self.new_roi_start_line.getXPos(),
+                10,
+            ],
+            pen="y",
+            movable=False,
+            resizable=False,
+            rotatable=False,
+        )
+        roi.setZValue(10)
+
+        self.plot_widget.addItem(roi)
+
+        text_item = pg.TextItem(text="Annotated", anchor=(0.5, 0.5), color="y")
+        roi_rect = roi.boundingRect()
+        text_item.setPos(
+            self.new_roi_start_line.getXPos() + roi_rect.center().x(),
+            y_min + roi_rect.center().y(),
+        )
+        self.plot_widget.addItem(text_item)
+
+        roi.setAcceptedMouseButtons(PyQt5.QtCore.Qt.MouseButton.LeftButton)
+        roi.sigClicked.connect(self.roi_mouse_clicked)
+
+    def roi_mouse_clicked(self, evt):
+        print(evt)
 
     def validateRoiPosition(self):
         if (
