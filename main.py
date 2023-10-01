@@ -258,6 +258,7 @@ class MyApp(QMainWindow):
         self.plot_widget_progress_text.setPos(self.current_progress, 0)
 
     # TODO: The code of onPoiStartPressed and onPoiStopPressed overlaps a lot and needs refactoring.
+
     def onPoiStartPressed(self):
         # print("onPoiStartPressed...")
 
@@ -281,6 +282,8 @@ class MyApp(QMainWindow):
             print("Update POI start position...")
             self.new_poi_start_line.setPos(self.current_progress)
             self.new_poi_start_text.setPos(self.current_progress, -5)
+
+        self.validatePoiPosition()
 
     def onPoiStopPressed(self):
         # print("onPoiStopPressed...")
@@ -306,6 +309,9 @@ class MyApp(QMainWindow):
             self.new_poi_end_line.setPos(self.current_progress)
             self.new_poi_end_text.setPos(self.current_progress, -10)
 
+        self.validatePoiPosition()
+
+    def validatePoiPosition(self):
         if (
             self.new_poi_start_line
             and self.new_poi_end_line
@@ -314,8 +320,12 @@ class MyApp(QMainWindow):
             QMessageBox.about(
                 self, "Warning", "POI End time cannot be earlier than POI Start time."
             )
+            self.plot_widget.removeItem(self.new_poi_start_line)
+            self.plot_widget.removeItem(self.new_poi_start_text)
             self.plot_widget.removeItem(self.new_poi_end_line)
             self.plot_widget.removeItem(self.new_poi_end_text)
+            self.new_poi_start_line = None
+            self.new_poi_start_text = None
             self.new_poi_end_line = None
             self.new_poi_end_text = None
 
