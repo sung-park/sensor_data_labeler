@@ -21,6 +21,7 @@ from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtCore import QDir, Qt, QUrl
 from pyqtgraph import InfiniteLine, TextItem
 from PyQt5.QtGui import QKeyEvent
+from AnnotationRoi import AnnotationRoi
 
 from LineInfoPair import LineInfoPair
 from PyQt5.QtGui import QMouseEvent
@@ -231,40 +232,15 @@ class MyApp(QMainWindow):
         else:
             return
 
-        # y_min: -22.847815470229374 y_max 24.77754347022937
-        y_min, y_max = self.plot_widget.getAxis("left").range
-
-        roi = pg.RectROI(
-            [self.roi_start.getXPos(), y_min],
-            [
-                self.roi_end.getXPos() - self.roi_start.getXPos(),
-                10,
-            ],
-            pen="y",
-            movable=False,
-            resizable=False,
-            rotatable=False,
+        annotation_roi = AnnotationRoi(
+            self.plot_widget,
+            self.roi_start.getXPos(),
+            self.roi_end.getXPos(),
+            selected_item,
         )
-        roi.setZValue(10)
-
-        self.plot_widget.addItem(roi)
-
-        text_item = pg.TextItem(text=selected_item, anchor=(0.5, 0.5), color="y")
-        roi_rect = roi.boundingRect()
-        text_item.setPos(
-            self.roi_start.getXPos() + roi_rect.center().x(),
-            y_min + roi_rect.center().y(),
-        )
-        self.plot_widget.addItem(text_item)
-
-        roi.setAcceptedMouseButtons(PyQt5.QtCore.Qt.MouseButton.LeftButton)
-        roi.sigClicked.connect(self.roi_mouse_clicked)
 
         self.roi_start.clear()
         self.roi_end.clear()
-
-    def roi_mouse_clicked(self, evt):
-        print(evt)
 
     def validate_roi_position(self):
         if (
