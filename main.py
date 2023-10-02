@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QMessageBox,
     QDialog,
+    QTextBrowser,
 )
 from PyQt5.QtGui import QIcon, QDesktopServices
 import pandas as pd
@@ -21,6 +22,7 @@ from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtCore import QDir, Qt, QUrl
 from pyqtgraph import InfiniteLine, TextItem
 from PyQt5.QtGui import QKeyEvent
+from AnnotationManager import AnnotationManager
 from AnnotationRoi import AnnotationRoi
 
 from LineInfoPair import LineInfoPair
@@ -32,6 +34,7 @@ from PopupWindow import PopupWindow
 
 class MyApp(QMainWindow):
     media_player: MediaPlayer = None
+    annotation_manager = AnnotationManager()
 
     def __init__(self):
         super().__init__()
@@ -45,13 +48,21 @@ class MyApp(QMainWindow):
         menubar = self.menuBar()
         menubar.setNativeMenuBar(False)
 
-        openFile = QAction(QIcon("open.png"), "Open", self)
-        openFile.setShortcut("Ctrl+O")
-        openFile.setStatusTip("Open New File")
-        openFile.triggered.connect(self.showDialog)
+        open_csv_file = QAction(QIcon("open.png"), "Open", self)
+        # open_csv_file.setShortcut("Ctrl+O")
+        open_csv_file.setStatusTip("Open New File")
+        open_csv_file.triggered.connect(self.open_new_file_dialog)
+
+        save_annotation_file = QAction(
+            QIcon("open.png"), "Save annotation as CSV", self
+        )
+        # save_annotation_file.setShortcut("Ctrl+S")
+        save_annotation_file.setStatusTip("Save annotation as CSV")
+        save_annotation_file.triggered.connect(self.save_annotation_file_dialog)
 
         fileMenu = menubar.addMenu("&File")
-        fileMenu.addAction(openFile)
+        fileMenu.addAction(open_csv_file)
+        fileMenu.addAction(save_annotation_file)
 
         keyboard_shortcuts_reference = QAction(
             QIcon("open.png"), "Keyboard Shortcuts Reference", self
@@ -83,7 +94,34 @@ class MyApp(QMainWindow):
         )
         QDesktopServices.openUrl(url)
 
-    def showDialog(self):
+    def save_annotation_file_dialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.ReadOnly
+
+        file_name, _ = QFileDialog.getSaveFileName(
+            self, "Save File", "", "CSV Files (*.csv)", options=options
+        )
+
+        if file_name:
+            print(file_name)
+            self.annotation_manager.save_to_csv(file_name)
+
+            csv_data_dialog = QDialog(self)
+            csv_data_dialog.setWindowTitle("CSV Data")
+            csv_data_dialog.setGeometry(400, 400, 640, 240)
+            csv_data_text_browser = QTextBrowser(csv_data_dialog)
+            csv_data_text_browser.setMinimumSize(640, 240)
+
+            with open(file_name, "r") as file:
+                lines = file.readlines()
+                data = "".join(lines[:5])
+
+            csv_data_text_browser.setPlainText(data)
+            csv_data_dialog.adjustSize()
+            csv_data_dialog.setWindowTitle("CSV file has been saved successfully.")
+            csv_data_dialog.exec_()
+
+    def open_new_file_dialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
         options |= QFileDialog.ExistingFiles
@@ -232,11 +270,13 @@ class MyApp(QMainWindow):
         else:
             return
 
-        annotation_roi = AnnotationRoi(
-            self.plot_widget,
-            self.roi_start.getXPos(),
-            self.roi_end.getXPos(),
-            selected_item,
+        self.annotation_manager.add(
+            AnnotationRoi(
+                self.plot_widget,
+                self.roi_start.getXPos(),
+                self.roi_end.getXPos(),
+                selected_item,
+            )
         )
 
         self.roi_start.clear()
