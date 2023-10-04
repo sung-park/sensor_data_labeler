@@ -4,3 +4,4 @@
 | S     | Mark the start of ROI                         |
 | E     | Mark the end of ROI                           |
 | M     | Annotate between the start and the end of ROI |
+| ROI Right Click - Delete | Delete ROI |
