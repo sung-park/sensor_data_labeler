@@ -48,12 +48,6 @@ class MediaPlayer:
         self.currentTimeLabel = QLabel()
         self.currentTimeLabel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
 
-        # Create exit action
-        exitAction = QAction(QIcon("exit.png"), "&Exit", self.main_window)
-        exitAction.setShortcut("Ctrl+Q")
-        exitAction.setStatusTip("Exit application")
-        exitAction.triggered.connect(self.exitCall)
-
         # Create a widget for window contents
         wid = QWidget(self.main_window)
         self.main_layout.addWidget(wid)
@@ -87,9 +81,6 @@ class MediaPlayer:
 
     def setPosition(self, position):
         self.mediaPlayer.setPosition(position)
-
-    def exitCall(self):
-        sys.exit(app.exec_())
 
     def mediaStateChanged(self, state):
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
