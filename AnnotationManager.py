@@ -1,17 +1,22 @@
 from typing import List
-from AnnotationRoi import AnnotationRoi
+from AnnotationRoi import AnnotationRoi, AnnotationRoiEventObserver
 import csv
 
+from util import log_method_call
 
-class AnnotationManager:
+
+class AnnotationManager(AnnotationRoiEventObserver):
     def __init__(self) -> None:
         pass
 
     annotations: List[AnnotationRoi] = []
 
-    def add(self, annotation):
+    @log_method_call
+    def add(self, annotation: AnnotationRoi):
         self.annotations.append(annotation)
+        annotation.add_observer(self)
 
+    @log_method_call
     def save_to_csv(self, filename):
         with open(filename, "w", newline="") as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -26,3 +31,7 @@ class AnnotationManager:
                         annotation.annotation_text,
                     ]
                 )
+
+    @log_method_call
+    def delete(self, annotation: AnnotationRoi):
+        self.annotations.remove(annotation)

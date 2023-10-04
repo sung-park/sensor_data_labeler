@@ -1,8 +1,6 @@
 from datetime import datetime
 import json
 import sys
-from PyQt5 import QtGui
-import PyQt5
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -19,7 +17,7 @@ import pandas as pd
 from pyqtgraph import PlotWidget
 import pyqtgraph as pg
 
-from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
+from PyQt5.QtMultimedia import QMediaContent
 from PyQt5.QtCore import QDir, Qt, QUrl
 from pyqtgraph import InfiniteLine, TextItem
 from PyQt5.QtGui import QKeyEvent
@@ -31,6 +29,7 @@ from PyQt5.QtGui import QMouseEvent
 
 from MediaPlayer import MediaPlayer
 from PopupWindow import PopupWindow
+from util import log_method_call
 
 
 class MyApp(QMainWindow):
@@ -49,9 +48,9 @@ class MyApp(QMainWindow):
         menubar = self.menuBar()
         menubar.setNativeMenuBar(False)
 
-        open_csv_file = QAction(QIcon("open.png"), "Open", self)
+        open_csv_file = QAction(QIcon("open.png"), "Open CSV file", self)
         # open_csv_file.setShortcut("Ctrl+O")
-        open_csv_file.setStatusTip("Open New File")
+        open_csv_file.setStatusTip("Open CSV file")
         open_csv_file.triggered.connect(self.open_new_file_dialog)
 
         save_annotation_file = QAction(
@@ -175,6 +174,8 @@ class MyApp(QMainWindow):
             self.main_layout.removeWidget(self.plot_widget)
 
         self.plot_widget = PlotWidget(axisItems={"bottom": pg.DateAxisItem()})
+        self.plot_widget.setMenuEnabled(False)
+
         self.roi_start.set_plot_widget(self.plot_widget)
         self.roi_end.set_plot_widget(self.plot_widget)
 
@@ -238,7 +239,8 @@ class MyApp(QMainWindow):
         ] + datetime_obj.strftime(" %Y-%m-%d")
         self.plot_widget_progress_text.setText(formatted_datetime)
 
-    def onRoiStartPressed(self):
+    @log_method_call
+    def on_roi_start_pressed(self):
         if not self.roi_start.is_marked():
             self.roi_start.mark(self.current_progress)
         elif self.roi_start.getXPos() == self.current_progress:
@@ -247,7 +249,8 @@ class MyApp(QMainWindow):
             self.roi_start.set_pos(self.current_progress)
         self.validate_roi_position()
 
-    def onRoiStopPressed(self):
+    @log_method_call
+    def on_roi_end_pressed(self):
         if not self.roi_end.is_marked():
             self.roi_end.mark(self.current_progress)
         elif self.roi_end.getXPos() == self.current_progress:
@@ -262,9 +265,8 @@ class MyApp(QMainWindow):
             tag_data = config_data.get("tags", [])
             return [tag["name"] for tag in config_data.get("tags", [])]
 
-    def onMarkPressed(self):
-        print("onMarkPressed...")
-
+    @log_method_call
+    def on_mark_pressed(self):
         items = self.get_tags()
 
         popup = PopupWindow(items)
@@ -310,15 +312,15 @@ class MyApp(QMainWindow):
 
     def keyReleaseEvent(self, key_event: QKeyEvent) -> None:
         if key_event.key() == Qt.Key.Key_S and not key_event.isAutoRepeat():
-            self.onRoiStartPressed()
+            self.on_roi_start_pressed()
             # print("S released")
 
         if key_event.key() == Qt.Key.Key_E and not key_event.isAutoRepeat():
-            self.onRoiStopPressed()
+            self.on_roi_end_pressed()
             # print("E released")
 
         if key_event.key() == Qt.Key.Key_M and not key_event.isAutoRepeat():
-            self.onMarkPressed()
+            self.on_mark_pressed()
 
         if key_event.key() == Qt.Key.Key_Space and not key_event.isAutoRepeat():
             self.media_player.play()

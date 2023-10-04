@@ -1,9 +1,12 @@
+from abc import abstractmethod
+from typing import List
 import pyqtgraph as pg
 from pyqtgraph import PlotWidget, RectROI
-import PyQt5
 from PyQt5 import QtCore
+from PyQt5.QtWidgets import QMenu, QAction
+from PyQt5.QtGui import QCursor
 
-# from PyQt5.QtCore import Qt
+from util import log_method_call
 
 
 class AnnotationRoi:
@@ -14,6 +17,7 @@ class AnnotationRoi:
         x_end,
         annotation_text,
     ) -> None:
+        self._observers: List[AnnotationRoiEventObserver] = []
         self.plot_widget: PlotWidget = plot_widget
         self.x_start = x_start
         self.x_end = x_end
@@ -22,6 +26,7 @@ class AnnotationRoi:
         self.create_roi()
         self.show()
 
+    @log_method_call
     def create_roi(self):
         # y_min: -22.847815470229374 y_max 24.77754347022937
         y_min, y_max = self.plot_widget.getAxis("left").range
@@ -51,15 +56,41 @@ class AnnotationRoi:
 
     def show(self):
         self.plot_widget.addItem(self.roi)
-        self.roi.setAcceptedMouseButtons(QtCore.Qt.MouseButton.LeftButton)
-        self.roi.sigClicked.connect(roi_mouse_clicked)
+        self.roi.setAcceptedMouseButtons(QtCore.Qt.MouseButton.RightButton)
+        self.roi.sigClicked.connect(self.right_button_clicked)
 
         self.plot_widget.addItem(self.text_item)
 
+    @log_method_call
     def clear(self):
         self.plot_widget.removeItem(self.roi)
         self.plot_widget.removeItem(self.text_item)
 
+    def right_button_clicked(self, roi):
+        self.show_context_menu(roi)
 
-def roi_mouse_clicked(roi):
-    print("roi_mouse_clicked:", roi)
+    @log_method_call
+    def show_context_menu(self, roi: RectROI):
+        menu = QMenu()
+        delete_action = QAction("Delete", menu)
+        delete_action.triggered.connect(self.delete_roi)
+        menu.addAction(delete_action)
+
+        cursor = QCursor()
+        global_pos = cursor.pos()
+        menu.exec_(global_pos)
+
+    def add_observer(self, observer):
+        if observer not in self._observers:
+            self._observers.append(observer)
+
+    def delete_roi(self, roi):
+        self.clear()
+        for observer in self._observers:
+            observer.delete(self)
+
+
+class AnnotationRoiEventObserver:
+    @abstractmethod
+    def delete(self, AnnotationRoi):
+        pass
