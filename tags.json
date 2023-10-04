@@ -1,0 +1,34 @@
+{
+    "tags": [
+        {
+            "name": "Sleeping"
+        },
+        {
+            "name": "Walking"
+        },
+        {
+            "name": "Running"
+        },
+        {
+            "name": "Resting"
+        },
+        {
+            "name": "Peeing"
+        },
+        {
+            "name": "Scratching"
+        },
+        {
+            "name": "Licking"
+        },
+        {
+            "name": "Eating"
+        },
+        {
+            "name": "Drinking"
+        },
+        {
+            "name": "Barking"
+        }
+    ]
+}

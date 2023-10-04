@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import sys
 from PyQt5 import QtGui
 import PyQt5
@@ -255,10 +256,16 @@ class MyApp(QMainWindow):
             self.roi_end.set_pos(self.current_progress)
         self.validate_roi_position()
 
+    def get_tags(self):
+        with open("tags.json", "r") as file:
+            config_data = json.load(file)
+            tag_data = config_data.get("tags", [])
+            return [tag["name"] for tag in config_data.get("tags", [])]
+
     def onMarkPressed(self):
         print("onMarkPressed...")
 
-        items = ["Sleeping", "Walking", "Running", "Eating", "Drinking", "Barking"]
+        items = self.get_tags()
 
         popup = PopupWindow(items)
         result = popup.exec_()
