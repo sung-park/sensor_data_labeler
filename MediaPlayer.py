@@ -1,7 +1,6 @@
 from PyQt5.QtMultimedia import QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtWidgets import (
-    QAction,
     QWidget,
     QPushButton,
     QStyle,
@@ -11,9 +10,8 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout,
 )
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt
-import sys
+from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtMultimedia import QMediaContent
 
 
 class MediaPlayer:
@@ -120,3 +118,7 @@ class MediaPlayer:
 
     def set_position(self, position):
         self.mediaPlayer.setPosition(position)
+
+    def open_video_file(self, fileName: str):
+        self.set_media(QMediaContent(QUrl.fromLocalFile(fileName)))
+        self.set_play_button_enabled(True)

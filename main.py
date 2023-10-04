@@ -154,15 +154,11 @@ class MyApp(QMainWindow):
         self.y_acc_z_data = self.sensor_df["acc_z"]
 
         self.plot_data()
-        self.open_video_file(video_filename)
+        self.media_player.open_video_file(video_filename)
 
         # Trick to display the first frame of a video
         self.media_player.play()
         self.media_player.play()
-
-    def open_video_file(self, fileName: str):
-        self.media_player.set_media(QMediaContent(QUrl.fromLocalFile(fileName)))
-        self.media_player.set_play_button_enabled(True)
 
     plot_widget: PlotWidget = None
 
