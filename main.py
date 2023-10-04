@@ -124,13 +124,12 @@ class MyApp(QMainWindow):
     def open_new_file_dialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
-        options |= QFileDialog.ExistingFiles
         options |= QFileDialog.HideNameFilterDetails
         fname, _ = QFileDialog.getOpenFileName(
             self,
             "Open CSV file",
-            "./",
-            "CSV Files (*.csv);;All Files (*)",
+            "",
+            "CSV File(*.csv);;",
             options=options,
         )
         if not fname:
