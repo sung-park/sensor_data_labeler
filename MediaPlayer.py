@@ -15,19 +15,17 @@ from PyQt5.QtMultimedia import QMediaContent
 
 
 class MediaPlayer:
-    def __init__(
-        self, style, main_window, main_layout, position_changed_callback
-    ) -> None:
+    def __init__(self, style, main_window, position_changed_callback) -> None:
         self.style = style
         self.main_window = main_window
-        self.main_layout = main_layout
         self.position_changed_callback = position_changed_callback
-        self.createViewPlayer()
+        # self.createViewPlayer()
 
-    def createViewPlayer(self):
+    def create_player_widget(self) -> QWidget:
         print("createViewPlayer...")
 
         self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+        self.mediaPlayer.setNotifyInterval(50)
 
         videoWidget = QVideoWidget()
 
@@ -48,7 +46,6 @@ class MediaPlayer:
 
         # Create a widget for window contents
         wid = QWidget(self.main_window)
-        self.main_layout.addWidget(wid)
 
         # Create layouts to place inside widget
         controlLayout = QHBoxLayout()
@@ -70,6 +67,8 @@ class MediaPlayer:
         self.mediaPlayer.positionChanged.connect(self.positionChanged)
         self.mediaPlayer.durationChanged.connect(self.durationChanged)
         self.mediaPlayer.error.connect(self.handleError)
+
+        return wid
 
     def play(self):
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
@@ -117,7 +116,8 @@ class MediaPlayer:
         self.playButton.setEnabled(enabled)
 
     def set_position(self, position):
-        self.mediaPlayer.setPosition(position)
+        if self.playButton.isEnabled():
+            self.mediaPlayer.setPosition(position)
 
     def open_video_file(self, fileName: str):
         self.set_media(QMediaContent(QUrl.fromLocalFile(fileName)))

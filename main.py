@@ -28,12 +28,13 @@ from LineInfoPair import LineInfoPair
 from PyQt5.QtGui import QMouseEvent
 
 from MediaPlayer import MediaPlayer
+from MediaPlayersManager import MediaPlayersManager
 from PopupWindow import PopupWindow
 from util import log_method_call
 
 
 class MyApp(QMainWindow):
-    media_player: MediaPlayer = None
+    media_players_manager: MediaPlayersManager = None
     annotation_manager = AnnotationManager()
 
     def __init__(self):
@@ -75,15 +76,18 @@ class MyApp(QMainWindow):
         helpMenu.addAction(keyboard_shortcuts_reference)
 
         self.setWindowTitle("PX Sensor Data Labeler")
-        self.setGeometry(300, 300, 1536, 576)
+        self.setGeometry(300, 300, 1536, 768)
 
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
         self.main_layout = QHBoxLayout()
         central_widget.setLayout(self.main_layout)
 
-        self.media_player = MediaPlayer(
-            self.style(), self, self.main_layout, self.update_plot_progress
+        self.media_players_manager = MediaPlayersManager(
+            self.style(),
+            self.main_layout,
+            self,
+            self.update_plot_progress,
         )
 
         self.show()
@@ -139,8 +143,8 @@ class MyApp(QMainWindow):
         csv_filename = fname
         video_filename = csv_filename.replace(".csv", ".mp4")
 
-        print("Input CSV filename: ", csv_filename)
-        print("Input MP4 filename: ", video_filename)
+        print("Input CSV filename:", csv_filename)
+        print("Input MP4 filename:", video_filename)
         self.sensor_df = pd.read_csv(csv_filename, sep=",", header=0)
 
         column_names = [col.strip() for col in self.sensor_df.columns]
@@ -154,11 +158,12 @@ class MyApp(QMainWindow):
         self.y_acc_z_data = self.sensor_df["acc_z"]
 
         self.plot_data()
-        self.media_player.open_video_file(video_filename)
+        self.media_players_manager.open_video_file(0, video_filename)
+        # self.media_player.open_video_file(video_filename)
 
         # Trick to display the first frame of a video
-        self.media_player.play()
-        self.media_player.play()
+        self.media_players_manager.play()
+        self.media_players_manager.play()
 
     plot_widget: PlotWidget = None
 
@@ -219,7 +224,8 @@ class MyApp(QMainWindow):
         if delta < 0:
             delta = 0.0
 
-        self.media_player.set_position(int(delta * 1000.0))
+        # self.media_player.set_position(int(delta * 1000.0))
+        self.media_players_manager.set_position(int(delta * 1000.0))
 
     def update_plot_progress(self, position):
         self.current_progress = self.plot_widget_data_start_timestamp + (
@@ -319,7 +325,8 @@ class MyApp(QMainWindow):
             self.on_mark_pressed()
 
         if key_event.key() == Qt.Key.Key_Space and not key_event.isAutoRepeat():
-            self.media_player.play()
+            # self.media_player.play()
+            self.media_players_manager.play()
 
 
 if __name__ == "__main__":
