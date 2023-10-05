@@ -227,7 +227,13 @@ class MyApp(QMainWindow):
         # self.media_player.set_position(int(delta * 1000.0))
         self.media_players_manager.set_position(int(delta * 1000.0))
 
+    last_position = -1
+
     def update_plot_progress(self, position):
+        if position == self.last_position:
+            pass
+        self.last_position = position
+
         self.current_progress = self.plot_widget_data_start_timestamp + (
             position / 1000
         )

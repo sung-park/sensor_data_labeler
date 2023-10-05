@@ -4,6 +4,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtMultimedia import QMediaContent
 
+from util import log_method_call
+
 
 class MediaPlayer:
     def __init__(self, style, main_window, position_changed_callback) -> None:
@@ -12,9 +14,8 @@ class MediaPlayer:
         self.position_changed_callback = position_changed_callback
         # self.createViewPlayer()
 
+    @log_method_call
     def create_player_widget(self) -> QWidget:
-        print("createViewPlayer...")
-
         self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
         self.mediaPlayer.setNotifyInterval(50)
 
