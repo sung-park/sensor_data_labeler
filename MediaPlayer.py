@@ -1,15 +1,6 @@
 from PyQt5.QtMultimedia import QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtWidgets import (
-    QWidget,
-    QPushButton,
-    QStyle,
-    QSlider,
-    QLabel,
-    QSizePolicy,
-    QHBoxLayout,
-    QVBoxLayout,
-)
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtMultimedia import QMediaContent
 
@@ -47,11 +38,15 @@ class MediaPlayer:
         # Create a widget for window contents
         wid = QWidget(self.main_window)
 
+        self.openButton = QPushButton("Open")
+        self.openButton.clicked.connect(self.open_video_file_dialog)
+
         # Create layouts to place inside widget
         controlLayout = QHBoxLayout()
         controlLayout.setContentsMargins(0, 0, 0, 0)
         controlLayout.addWidget(self.playButton)
         controlLayout.addWidget(self.positionSlider)
+        controlLayout.addWidget(self.openButton)
 
         layout = QVBoxLayout()
         layout.addWidget(videoWidget)
@@ -122,3 +117,19 @@ class MediaPlayer:
     def open_video_file(self, fileName: str):
         self.set_media(QMediaContent(QUrl.fromLocalFile(fileName)))
         self.set_play_button_enabled(True)
+
+    def open_video_file_dialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.ReadOnly
+        file_dialog = QFileDialog(self.main_window)
+
+        selected_file, _ = file_dialog.getOpenFileName(
+            self.main_window,
+            "Open Video File",
+            "",
+            "MP4 Files (*.mp4)",
+            options=options,
+        )
+
+        if selected_file:
+            self.open_video_file(selected_file)

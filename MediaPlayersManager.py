@@ -26,14 +26,18 @@ class MediaPlayersManager:
         main_layout.addWidget(self.video_players_widget)
 
     @log_method_call
-    def open_video_file(self, player_id: int, fileName: str):
-        if self.media_players[player_id]:
-            self.media_players[player_id].open_video_file(fileName)
+    def open_video_file(self, target_id: int, fileName: str):
+        if self.media_players[target_id]:
+            self.media_players[target_id].open_video_file(fileName)
 
     @log_method_call
-    def play(self, player_id=0):
-        if self.media_players[player_id]:
-            self.media_players[player_id].play()
+    def play(self, target_id=-1):
+        if target_id == -1:
+            for media_player in self.media_players:
+                if media_player:
+                    media_player.play()
+        elif self.media_players[target_id]:
+            self.media_players[target_id].play()
 
     def set_position(self, position, target_player_id: int = -1):
         if target_player_id == -1:
