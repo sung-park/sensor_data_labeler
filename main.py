@@ -231,7 +231,7 @@ class MyApp(QMainWindow):
 
     def update_plot_progress(self, position):
         if position == self.last_position:
-            pass
+            return
         self.last_position = position
 
         self.current_progress = self.plot_widget_data_start_timestamp + (
