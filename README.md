@@ -1,7 +1,7 @@
 # sensor_data_labeler
 
 ## Screenshot 
-![image](https://github.com/sung-park/sensor_data_labeler/assets/31734973/482a1942-2864-4fd3-b256-c472bbe24bca)
+![image](https://github.com/sung-park/sensor_data_labeler/assets/31734973/dad043b5-897d-46d6-891e-8ed787fbb1b2)
 
 ## Precondition
 - To play MP4, the following codecs must be additionally installed on your PC.
