@@ -72,6 +72,24 @@ class MyApp(QMainWindow):
             self.open_keyboard_shortcuts_reference
         )
 
+        action_view_mode_even = QAction(QIcon("open.png"), "Media View - Even", self)
+        action_view_mode_even.triggered.connect(self.set_view_mode_even)
+
+        action_view_mode_portrait = QAction(
+            QIcon("open.png"), "Media View - Portrait", self
+        )
+        action_view_mode_portrait.triggered.connect(self.set_view_mode_portrait)
+
+        action_view_mode_landscape = QAction(
+            QIcon("open.png"), "Media View - Landscape", self
+        )
+        action_view_mode_landscape.triggered.connect(self.set_view_mode_landscape)
+
+        viewMenu = menubar.addMenu("&View")
+        viewMenu.addAction(action_view_mode_even)
+        viewMenu.addAction(action_view_mode_portrait)
+        viewMenu.addAction(action_view_mode_landscape)
+
         helpMenu = menubar.addMenu("&Help")
         helpMenu.addAction(keyboard_shortcuts_reference)
 
@@ -97,6 +115,15 @@ class MyApp(QMainWindow):
             "https://github.com/sung-park/sensor_data_labeler/blob/main/SHORTCUTS_REF.md"
         )
         QDesktopServices.openUrl(url)
+
+    def set_view_mode_even(self):
+        self.media_players_manager.set_view_mode_even()
+
+    def set_view_mode_portrait(self):
+        self.media_players_manager.set_view_mode_portrait()
+
+    def set_view_mode_landscape(self):
+        self.media_players_manager.set_view_mode_landscape()
 
     def save_annotation_file_dialog(self):
         options = QFileDialog.Options()
