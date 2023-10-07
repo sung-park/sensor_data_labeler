@@ -51,21 +51,17 @@ class MyApp(QMainWindow):
         menubar = self.menuBar()
         menubar.setNativeMenuBar(False)
 
-        open_csv_file = QAction(QIcon("open.png"), "Open CSV file", self)
-        # open_csv_file.setShortcut("Ctrl+O")
-        open_csv_file.setStatusTip("Open CSV file")
-        open_csv_file.triggered.connect(self.open_new_file_dialog)
+        action_open_csv_file = QAction("Open CSV Data File", self)
+        action_open_csv_file.setStatusTip("Open CSV Data File")
+        action_open_csv_file.triggered.connect(self.open_data_file)
 
-        save_annotation_file = QAction(
-            QIcon("open.png"), "Save annotation as CSV", self
-        )
-        # save_annotation_file.setShortcut("Ctrl+S")
-        save_annotation_file.setStatusTip("Save annotation as CSV")
-        save_annotation_file.triggered.connect(self.save_annotation_file_dialog)
+        action_save_annotation = QAction("Save Annotation File", self)
+        action_save_annotation.setStatusTip("Save Annotation File")
+        action_save_annotation.triggered.connect(self.save_annotation_file)
 
         fileMenu = menubar.addMenu("&File")
-        fileMenu.addAction(open_csv_file)
-        fileMenu.addAction(save_annotation_file)
+        fileMenu.addAction(action_open_csv_file)
+        fileMenu.addAction(action_save_annotation)
 
         keyboard_shortcuts_reference = QAction(
             QIcon("open.png"), "Keyboard Shortcuts Reference", self
@@ -127,12 +123,23 @@ class MyApp(QMainWindow):
     def set_view_mode_landscape(self):
         self.media_players_manager.set_view_mode_landscape()
 
-    def save_annotation_file_dialog(self):
+    def save_annotation_file(self):
+        if not self.sensor_data_csv_filename:
+            print("ERROR: A sensor data file has not yet been opened.")
+            return
+
+        suggested_annotation_filename = self.sensor_data_csv_filename.replace(
+            ".csv", ".ann"
+        )
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
 
         file_name, _ = QFileDialog.getSaveFileName(
-            self, "Save File", "", "CSV Files (*.csv)", options=options
+            self,
+            "Save Annotation File",
+            suggested_annotation_filename,
+            "ANN Files(*.ann)",
+            options=options,
         )
 
         if file_name:
@@ -140,7 +147,7 @@ class MyApp(QMainWindow):
             self.annotation_manager.save_to_csv(file_name)
 
             csv_data_dialog = QDialog(self)
-            csv_data_dialog.setWindowTitle("CSV Data")
+            csv_data_dialog.setWindowTitle(file_name)
             csv_data_dialog.setGeometry(400, 400, 640, 240)
             csv_data_text_browser = QTextBrowser(csv_data_dialog)
             csv_data_text_browser.setMinimumSize(640, 240)
@@ -151,16 +158,17 @@ class MyApp(QMainWindow):
 
             csv_data_text_browser.setPlainText(data)
             csv_data_dialog.adjustSize()
-            csv_data_dialog.setWindowTitle("CSV file has been saved successfully.")
             csv_data_dialog.exec_()
 
-    def open_new_file_dialog(self):
+    sensor_data_csv_filename = None
+
+    def open_data_file(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
         options |= QFileDialog.HideNameFilterDetails
         fname, _ = QFileDialog.getOpenFileName(
             self,
-            "Open CSV file",
+            "Open CSV Data File",
             "",
             "CSV File(*.csv);;",
             options=options,
@@ -199,6 +207,8 @@ class MyApp(QMainWindow):
         # Trick to display the first frame of a video
         self.media_players_manager.play()
         self.media_players_manager.play()
+
+        self.sensor_data_csv_filename = csv_filename
 
     plot_widget: PlotWidget = None
 
