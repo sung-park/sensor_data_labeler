@@ -30,6 +30,7 @@ from PyQt5.QtGui import QMouseEvent
 from MediaPlayer import MediaPlayer
 from MediaPlayersManager import MediaPlayersManager
 from PopupWindow import PopupWindow
+from TagsManager import TagsManager
 from util import log_method_call
 
 
@@ -294,17 +295,11 @@ class MyApp(QMainWindow):
             self.roi_end.set_pos(self.current_progress)
         self.validate_roi_position()
 
-    def get_tags(self):
-        with open("tags.json", "r") as file:
-            config_data = json.load(file)
-            tag_data = config_data.get("tags", [])
-            return [tag["name"] for tag in config_data.get("tags", [])]
+    tags_manager = TagsManager()
 
     @log_method_call
     def on_mark_pressed(self):
-        items = self.get_tags()
-
-        popup = PopupWindow(items)
+        popup = PopupWindow(self.tags_manager.get_tags())
         result = popup.exec_()
 
         if result == QDialog.Accepted:

@@ -47,13 +47,12 @@ class MediaPlayer:
         controlLayout.setContentsMargins(0, 0, 0, 0)
         controlLayout.addWidget(self.playButton)
         controlLayout.addWidget(self.positionSlider)
+        controlLayout.addWidget(self.currentTimeLabel)
         controlLayout.addWidget(self.openButton)
 
         layout = QVBoxLayout()
         layout.addWidget(videoWidget)
         layout.addLayout(controlLayout)
-        layout.addWidget(self.errorLabel)
-        layout.addWidget(self.currentTimeLabel)
 
         # Set widget to contain window contents
         wid.setLayout(layout)
@@ -103,7 +102,8 @@ class MediaPlayer:
 
     def handleError(self):
         self.playButton.setEnabled(False)
-        self.errorLabel.setText("Error: " + self.mediaPlayer.errorString())
+        error_message = "QMediaPlayerError(" + self.mediaPlayer.errorString() + ")"
+        QMessageBox.critical(self.main_window, "Error", error_message)
 
     def set_media(self, media_content):
         self.mediaPlayer.setMedia(media_content)
