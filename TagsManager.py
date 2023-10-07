@@ -9,3 +9,9 @@ class TagsManager:
 
     def get_tags(self):
         return self.tags
+
+    def get_index(self, tag_name: str) -> int:
+        return self.tags.index(tag_name)
+
+    def get_num_of_tags(self):
+        return len(self.tags)

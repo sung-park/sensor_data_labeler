@@ -31,6 +31,7 @@ from MediaPlayer import MediaPlayer
 from MediaPlayersManager import MediaPlayersManager
 from PopupWindow import PopupWindow
 from TagsManager import TagsManager
+from config import TAGS_HEIGHT
 from util import log_method_call
 
 
@@ -184,6 +185,12 @@ class MyApp(QMainWindow):
         self.y_acc_x_data = self.sensor_df["acc_x"]
         self.y_acc_y_data = self.sensor_df["acc_y"]
         self.y_acc_z_data = self.sensor_df["acc_z"]
+        self.y_data_min = min(
+            self.y_acc_x_data.min(), self.y_acc_y_data.min(), self.y_acc_z_data.min()
+        )
+        self.y_data_max = max(
+            self.y_acc_x_data.max(), self.y_acc_y_data.max(), self.y_acc_z_data.max()
+        )
 
         self.plot_data()
         self.media_players_manager.open_video_file(0, video_filename)
@@ -220,6 +227,10 @@ class MyApp(QMainWindow):
         # print(self.x_data.min())
         # print(self.x_data.max())
         view_box.setXRange(self.x_data.min(), self.x_data.max())
+        view_box.setYRange(
+            self.y_data_min - (self.tags_manager.get_num_of_tags() * TAGS_HEIGHT),
+            self.y_data_max,
+        )
         view_range = view_box.viewRange()
         view_box.setLimits(
             xMin=view_range[0][0],

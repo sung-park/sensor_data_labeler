@@ -5,6 +5,8 @@ from pyqtgraph import PlotWidget, RectROI
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMenu, QAction
 from PyQt5.QtGui import QCursor
+from TagsManager import TagsManager
+from config import TAGS_HEIGHT
 
 from util import log_method_call
 
@@ -26,16 +28,20 @@ class AnnotationRoi:
         self.create_roi()
         self.show()
 
+    tags_manager = TagsManager()
+
     @log_method_call
     def create_roi(self):
         # y_min: -22.847815470229374 y_max 24.77754347022937
         y_min, y_max = self.plot_widget.getAxis("left").range
 
+        tag_index = self.tags_manager.get_index(self.annotation_text)
+
         self.roi: RectROI = RectROI(
-            [self.x_start, y_min],
+            [self.x_start, y_min + (tag_index * TAGS_HEIGHT)],
             [
                 self.x_end - self.x_start,
-                10,
+                TAGS_HEIGHT * 0.9,
             ],
             pen="y",
             movable=False,
@@ -51,7 +57,7 @@ class AnnotationRoi:
         roi_rect = self.roi.boundingRect()
         self.text_item.setPos(
             self.x_start + roi_rect.center().x(),
-            y_min + roi_rect.center().y(),
+            y_min + (tag_index * TAGS_HEIGHT) + roi_rect.center().y(),
         )
 
     def show(self):
