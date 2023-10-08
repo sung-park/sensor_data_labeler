@@ -1,7 +1,7 @@
 from typing import List
 from AnnotationRoi import AnnotationRoi, AnnotationRoiEventObserver
 import csv
-
+from pyqtgraph import PlotWidget
 from util import log_method_call
 
 
@@ -35,3 +35,24 @@ class AnnotationManager(AnnotationRoiEventObserver):
     @log_method_call
     def delete(self, annotation: AnnotationRoi):
         self.annotations.remove(annotation)
+
+    @log_method_call
+    def load_from_csv(self, filename, plot_widget: PlotWidget):
+        with open(filename, "r") as csv_file:
+            csv_reader = csv.reader(csv_file)
+
+            next(csv_reader)
+
+            for row in csv_reader:
+                start_timestamp = int(row[0])
+                end_timestamp = int(row[1])
+                behavior = row[2]
+
+                self.add(
+                    AnnotationRoi(
+                        plot_widget,
+                        start_timestamp / 1000.0,
+                        end_timestamp / 1000.0,
+                        behavior,
+                    )
+                )

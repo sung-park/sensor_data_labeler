@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+import os
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon, QDesktopServices
@@ -107,6 +108,9 @@ class MyApp(QMainWindow):
         )
         QDesktopServices.openUrl(url)
 
+    def load_annotation_file(self, filename):
+        self.annotation_manager.load_from_csv(filename, self.plot_widget)
+
     def save_annotation_file(self):
         if not self.sensor_data_csv_filename:
             print("ERROR: A sensor data file has not yet been opened.")
@@ -193,6 +197,22 @@ class MyApp(QMainWindow):
         self.media_players_manager.play()
 
         self.sensor_data_csv_filename = csv_filename
+        self.ask_and_open_annotation_file(
+            self.sensor_data_csv_filename.replace("csv", "ann")
+        )
+
+    def ask_and_open_annotation_file(self, filename):
+        if os.path.exists(filename):
+            reply = QMessageBox.question(
+                self,
+                "Reading Annotation File",
+                "An Annotation File (.ann) with a name that matches the CSV file exists. Would you like to read it together?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            )
+
+            if reply == QMessageBox.Yes:
+                self.load_annotation_file(filename)
 
     plot_widget: PlotWidget = None
 
@@ -304,6 +324,9 @@ class MyApp(QMainWindow):
 
     @log_method_call
     def on_mark_pressed(self):
+        if not self.roi_start.is_marked() or not self.roi_end.is_marked():
+            return
+
         popup = PopupWindow(self.tags_manager.get_tags())
         result = popup.exec_()
 
