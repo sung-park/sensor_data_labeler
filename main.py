@@ -1,23 +1,12 @@
 from datetime import datetime
 import json
 import sys
-from PyQt5.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QAction,
-    QFileDialog,
-    QWidget,
-    QHBoxLayout,
-    QMessageBox,
-    QDialog,
-    QTextBrowser,
-)
+from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon, QDesktopServices
 import pandas as pd
 from pyqtgraph import PlotWidget
 import pyqtgraph as pg
 
-from PyQt5.QtMultimedia import QMediaContent
 from PyQt5.QtCore import QDir, Qt, QUrl
 from pyqtgraph import InfiniteLine, TextItem
 from PyQt5.QtGui import QKeyEvent
@@ -27,7 +16,6 @@ from AnnotationRoi import AnnotationRoi
 from LineInfoPair import LineInfoPair
 from PyQt5.QtGui import QMouseEvent
 
-from MediaPlayer import MediaPlayer
 from MediaPlayersManager import MediaPlayersManager
 from PopupWindow import PopupWindow
 from TagsManager import TagsManager
@@ -70,23 +58,7 @@ class MyApp(QMainWindow):
             self.open_keyboard_shortcuts_reference
         )
 
-        action_view_mode_even = QAction(QIcon("open.png"), "Media View - Even", self)
-        action_view_mode_even.triggered.connect(self.set_view_mode_even)
-
-        action_view_mode_portrait = QAction(
-            QIcon("open.png"), "Media View - Portrait", self
-        )
-        action_view_mode_portrait.triggered.connect(self.set_view_mode_portrait)
-
-        action_view_mode_landscape = QAction(
-            QIcon("open.png"), "Media View - Landscape", self
-        )
-        action_view_mode_landscape.triggered.connect(self.set_view_mode_landscape)
-
-        viewMenu = menubar.addMenu("&View")
-        viewMenu.addAction(action_view_mode_even)
-        viewMenu.addAction(action_view_mode_portrait)
-        viewMenu.addAction(action_view_mode_landscape)
+        self.add_view_menu(menubar)
 
         helpMenu = menubar.addMenu("&Help")
         helpMenu.addAction(keyboard_shortcuts_reference)
@@ -108,20 +80,32 @@ class MyApp(QMainWindow):
 
         self.show()
 
+    def add_view_menu(self, menubar: QMenuBar):
+        view_mode = QMenu("View Mode", self)
+        group = QActionGroup(view_mode)
+        texts = ["Media View - Even", "Media View - Portrait", "Media View - Landscape"]
+        action_even = QAction("Media View - Even", self)
+        for text in texts:
+            action = QAction(text, view_mode, checkable=True, checked=text == texts[0])
+            view_mode.addAction(action)
+            group.addAction(action)
+        group.setExclusive(True)
+        group.triggered.connect(self.on_view_mode_changed)
+        menubar.addMenu(view_mode)
+
+    def on_view_mode_changed(self, action):
+        if "Even" in action.text():
+            self.media_players_manager.set_view_mode_even()
+        elif "Portrait" in action.text():
+            self.media_players_manager.set_view_mode_portrait()
+        elif "Landscape" in action.text():
+            self.media_players_manager.set_view_mode_landscape()
+
     def open_keyboard_shortcuts_reference(self):
         url = QUrl(
             "https://github.com/sung-park/sensor_data_labeler/blob/main/SHORTCUTS_REF.md"
         )
         QDesktopServices.openUrl(url)
-
-    def set_view_mode_even(self):
-        self.media_players_manager.set_view_mode_even()
-
-    def set_view_mode_portrait(self):
-        self.media_players_manager.set_view_mode_portrait()
-
-    def set_view_mode_landscape(self):
-        self.media_players_manager.set_view_mode_landscape()
 
     def save_annotation_file(self):
         if not self.sensor_data_csv_filename:
