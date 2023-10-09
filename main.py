@@ -376,6 +376,9 @@ class MyApp(QMainWindow):
             return
 
         popup = PopupWindow(self.tags_manager.get_tags())
+        x = self.geometry().center().x() - popup.width() / 2
+        y = self.geometry().center().y() - popup.height() / 2
+        popup.move(int(x), int(y))
         result = popup.exec_()
 
         if result == QDialog.Accepted:
