@@ -40,17 +40,7 @@ class MyApp(QMainWindow):
         menubar = self.menuBar()
         menubar.setNativeMenuBar(False)
 
-        action_open_csv_file = QAction("Open CSV Data File", self)
-        action_open_csv_file.setStatusTip("Open CSV Data File")
-        action_open_csv_file.triggered.connect(self.open_data_file)
-
-        action_save_annotation = QAction("Save Annotation File", self)
-        action_save_annotation.setStatusTip("Save Annotation File")
-        action_save_annotation.triggered.connect(self.save_annotation_file)
-
-        fileMenu = menubar.addMenu("&File")
-        fileMenu.addAction(action_open_csv_file)
-        fileMenu.addAction(action_save_annotation)
+        self.add_file_menu(menubar)
 
         keyboard_shortcuts_reference = QAction(
             QIcon("open.png"), "Keyboard Shortcuts Reference", self
@@ -81,6 +71,30 @@ class MyApp(QMainWindow):
 
         self.show()
 
+    def add_file_menu(self, menubar):
+        action_open_csv_file = QAction("Open CSV Data File", self)
+        action_open_csv_file.setStatusTip("Open CSV Data File")
+        action_open_csv_file.triggered.connect(self.open_data_file)
+
+        action_save_annotation = QAction("Save Annotation File", self)
+        action_save_annotation.setStatusTip("Save Annotation File")
+        action_save_annotation.triggered.connect(self.save_annotation_file)
+
+        action_export_csv_with_annotation = QAction(
+            "Export CSV Data File With Annotation", self
+        )
+        action_export_csv_with_annotation.setStatusTip(
+            "Export CSV Data File With Annotation"
+        )
+        action_export_csv_with_annotation.triggered.connect(
+            self.export_csv_with_annotation
+        )
+
+        file_menu = menubar.addMenu("&File")
+        file_menu.addAction(action_open_csv_file)
+        file_menu.addAction(action_save_annotation)
+        file_menu.addAction(action_export_csv_with_annotation)
+
     def add_view_menu(self, menubar: QMenuBar):
         view_mode = QMenu("View Mode", self)
         group = QActionGroup(view_mode)
@@ -107,6 +121,40 @@ class MyApp(QMainWindow):
             "https://github.com/sung-park/sensor_data_labeler/blob/main/SHORTCUTS_REF.md"
         )
         QDesktopServices.openUrl(url)
+
+    def export_csv_with_annotation(self):
+        sensor_data_df = pd.read_csv(self.sensor_data_csv_filename)
+        annotation_df = pd.read_csv(
+            self.sensor_data_csv_filename.replace(".csv", ".ann")
+        )
+
+        for index, annotation_row in annotation_df.iterrows():
+            start_timestamp = annotation_row["start_timestamp"]
+            end_timestamp = annotation_row["end_timestamp"]
+            behavior: str = annotation_row["behavior"]
+
+            words = behavior.split("::")
+            tag_type = words[0]
+            tag_name = words[1]
+
+            mask = (sensor_data_df["timestamp"] >= start_timestamp) & (
+                sensor_data_df["timestamp"] <= end_timestamp
+            )
+
+            sensor_data_df.loc[mask, tag_type] = tag_name
+
+        directory, file_name = os.path.split(self.sensor_data_csv_filename)
+        file_name_without_extension, extension = os.path.splitext(file_name)
+        new_file_name = file_name_without_extension + "_labeled" + extension
+        new_path = os.path.join(directory, new_file_name)
+        sensor_data_df.to_csv(new_path, index=False)
+
+        QMessageBox.information(
+            self,
+            "Information",
+            f"The original data and annotations have been successfully integrated and saved!\n"
+            + new_path,
+        )
 
     def load_annotation_file(self, filename):
         self.annotation_manager.load_from_csv(filename, self.plot_widget)
