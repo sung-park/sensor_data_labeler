@@ -14,7 +14,7 @@ class TagsManager:
         self.tags = []
         self.types = []
 
-        with open("tags.json", "r") as file:
+        with open("tags.json", "r", encoding="UTF8") as file:
             config_data = json.load(file)
 
             for tag_type in config_data["types"]:
