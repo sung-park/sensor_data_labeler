@@ -1,6 +1,7 @@
 from PyQt5.QtMultimedia import QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 from PyQt5.QtWidgets import *
+from PyQt5.QtMultimediaWidgets import *
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtMultimedia import QMediaContent
 
@@ -14,17 +15,33 @@ class MediaPlayer:
         self.position_changed_callback = position_changed_callback
         # self.createViewPlayer()
 
+    rotation_degree = 0
+
     @log_method_call
     def create_player_widget(self) -> QWidget:
+        # Create a widget for window contents
+        wid = QWidget(self.main_window)
+
+        self._scene = QGraphicsScene(wid)
+        self._gv = QGraphicsView(self._scene)
+
+        self._videoitem = QGraphicsVideoItem()
+        self._scene.addItem(self._videoitem)
+
         self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
         self.mediaPlayer.setNotifyInterval(50)
 
-        videoWidget = QVideoWidget()
+        # videoWidget = QVideoWidget()
 
         self.playButton = QPushButton()
         self.playButton.setEnabled(False)
         self.playButton.setIcon(self.style.standardIcon(QStyle.SP_MediaPlay))
         self.playButton.clicked.connect(self.play)
+
+        self.rotateButton = QPushButton()
+        self.rotateButton.setEnabled(True)
+        self.rotateButton.setIcon(self.style.standardIcon(QStyle.SP_BrowserReload))
+        self.rotateButton.clicked.connect(self.rotate)
 
         self.positionSlider = QSlider(Qt.Horizontal)
         self.positionSlider.setRange(0, 0)
@@ -36,9 +53,6 @@ class MediaPlayer:
         self.currentTimeLabel = QLabel()
         self.currentTimeLabel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
 
-        # Create a widget for window contents
-        wid = QWidget(self.main_window)
-
         self.openButton = QPushButton("Open")
         self.openButton.clicked.connect(self.open_video_file_dialog)
 
@@ -46,24 +60,39 @@ class MediaPlayer:
         controlLayout = QHBoxLayout()
         controlLayout.setContentsMargins(0, 0, 0, 0)
         controlLayout.addWidget(self.playButton)
+        controlLayout.addWidget(self.rotateButton)
         controlLayout.addWidget(self.positionSlider)
-        controlLayout.addWidget(self.currentTimeLabel)
         controlLayout.addWidget(self.openButton)
 
+        statusLayout = QHBoxLayout()
+        statusLayout.addWidget(self.currentTimeLabel)
+
         layout = QVBoxLayout()
-        layout.addWidget(videoWidget)
+        # layout.addWidget(videoWidget)
+        layout.addWidget(self._gv)
         layout.addLayout(controlLayout)
+        layout.addLayout(statusLayout)
 
         # Set widget to contain window contents
         wid.setLayout(layout)
 
-        self.mediaPlayer.setVideoOutput(videoWidget)
+        # self.mediaPlayer.setVideoOutput(videoWidget)
+        self.mediaPlayer.setVideoOutput(self._videoitem)
         self.mediaPlayer.stateChanged.connect(self.mediaStateChanged)
         self.mediaPlayer.positionChanged.connect(self.positionChanged)
         self.mediaPlayer.durationChanged.connect(self.durationChanged)
         self.mediaPlayer.error.connect(self.handleError)
 
         return wid
+
+    def rotate(self):
+        self.rotation_degree = self.rotation_degree + 90
+        if self.rotation_degree >= 360:
+            self.rotation_degree = 0
+
+        print(self.rotation_degree)
+        self._videoitem.setRotation(self.rotation_degree)
+        self._gv.fitInView(self._videoitem, Qt.KeepAspectRatio)
 
     def play(self):
         if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
