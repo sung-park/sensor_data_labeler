@@ -18,7 +18,7 @@ from LineInfoPair import LineInfoPair
 from PyQt5.QtGui import QMouseEvent
 
 from MediaPlayersManager import MediaPlayersManager
-from PopupWindow import PopupWindow
+from PopupWindow import TagSelectionDialog
 from TagsManager import TagsManager
 from config import TAGS_HEIGHT
 from util import log_method_call
@@ -375,7 +375,7 @@ class MyApp(QMainWindow):
         if not self.roi_start.is_marked() or not self.roi_end.is_marked():
             return
 
-        popup = PopupWindow(self.tags_manager.get_tags())
+        popup = TagSelectionDialog(self.tags_manager.get_tags())
         x = self.geometry().center().x() - popup.width() / 2
         y = self.geometry().center().y() - popup.height() / 2
         popup.move(int(x), int(y))
