@@ -123,9 +123,9 @@ class MyApp(QMainWindow):
         QDesktopServices.openUrl(url)
 
     def export_csv_with_annotation(self):
-        sensor_data_df = pd.read_csv(self.sensor_data_csv_filename)
+        sensor_data_df = pd.read_csv(self.sensor_data_csv_filename, encoding="UTF8")
         annotation_df = pd.read_csv(
-            self.sensor_data_csv_filename.replace(".csv", ".ann")
+            self.sensor_data_csv_filename.replace(".csv", ".ann"), encoding="UTF8"
         )
 
         for index, annotation_row in annotation_df.iterrows():
@@ -141,7 +141,16 @@ class MyApp(QMainWindow):
                 sensor_data_df["timestamp"] <= end_timestamp
             )
 
+            if tag_type not in sensor_data_df.columns:
+                sensor_data_df[tag_type] = "None"
+                sensor_data_df[tag_type] = sensor_data_df[tag_type].astype(str)
             sensor_data_df.loc[mask, tag_type] = tag_name
+
+        for tag_type in TagsManager().types:
+            if tag_type not in sensor_data_df:
+                sensor_data_df[tag_type] = "None"
+            # sensor_data_df[tag_type].replace("", "None", inplace=True)
+            sensor_data_df.loc[sensor_data_df[tag_type].isnull(), tag_type] = "None"
 
         directory, file_name = os.path.split(self.sensor_data_csv_filename)
         file_name_without_extension, extension = os.path.splitext(file_name)
@@ -188,7 +197,7 @@ class MyApp(QMainWindow):
             csv_data_text_browser = QTextBrowser(csv_data_dialog)
             csv_data_text_browser.setMinimumSize(640, 240)
 
-            with open(file_name, "r") as file:
+            with open(file_name, "r", encoding="utf-8") as file:
                 lines = file.readlines()
                 data = "".join(lines[:5])
 

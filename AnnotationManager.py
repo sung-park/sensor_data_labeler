@@ -13,12 +13,28 @@ class AnnotationManager(AnnotationRoiEventObserver):
 
     @log_method_call
     def add(self, annotation: AnnotationRoi):
+        overlapping_annotations: List[AnnotationRoi] = []
+
+        # Find overlapping annotations
+        for existing_annotation in self.annotations:
+            if (
+                annotation.annotation_type == existing_annotation.annotation_type
+                and self.is_overlapping(existing_annotation, annotation)
+            ):
+                overlapping_annotations.append(existing_annotation)
+
+        # Update overlapping annotations
+        for overlapping_annotation in overlapping_annotations:
+            overlap_area = self.calculate_overlap(overlapping_annotation, annotation)
+            if overlap_area > 0:
+                overlapping_annotation.delete_roi(None)
+
         self.annotations.append(annotation)
         annotation.add_observer(self)
 
     @log_method_call
     def save_to_csv(self, filename):
-        with open(filename, "w", newline="") as csv_file:
+        with open(filename, "w", newline="", encoding="utf-8") as csv_file:
             csv_writer = csv.writer(csv_file)
 
             csv_writer.writerow(["start_timestamp", "end_timestamp", "behavior"])
@@ -38,7 +54,7 @@ class AnnotationManager(AnnotationRoiEventObserver):
 
     @log_method_call
     def load_from_csv(self, filename, plot_widget: PlotWidget):
-        with open(filename, "r") as csv_file:
+        with open(filename, "r", encoding="utf-8") as csv_file:
             csv_reader = csv.reader(csv_file)
 
             next(csv_reader)
@@ -56,3 +72,18 @@ class AnnotationManager(AnnotationRoiEventObserver):
                         behavior,
                     )
                 )
+
+    def is_overlapping(self, annotation1: AnnotationRoi, annotation2: AnnotationRoi):
+        # Implement the logic to check if two annotations are overlapping
+        # For example, you can check if start_x of one annotation is less than end_x of the other annotation
+        return (
+            annotation1.x_start <= annotation2.x_end
+            and annotation2.x_start <= annotation1.x_end
+        )
+
+    def calculate_overlap(self, annotation1: AnnotationRoi, annotation2: AnnotationRoi):
+        # Calculate the area of overlap between two annotations
+        overlap_area = min(annotation1.x_end, annotation2.x_end) - max(
+            annotation1.x_start, annotation2.x_start
+        )
+        return max(0, overlap_area)

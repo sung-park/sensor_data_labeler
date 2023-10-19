@@ -3,7 +3,7 @@ from collections import defaultdict
 from PyQt5.QtCore import Qt, QSize
 
 
-class myTableWidget(QTableWidget):
+class ResizableTableWidget(QTableWidget):
     def sizeHint(self):
         width = 0
         for i in range(self.columnCount()):
@@ -33,9 +33,10 @@ class TagSelectionDialog(QDialog):
         # Determine the number of columns based on the number of types
         num_columns = len(items_by_type)
 
-        self.table_widget = myTableWidget()
+        self.table_widget = ResizableTableWidget()
         self.table_widget.setColumnCount(num_columns)
         self.table_widget.setHorizontalHeaderLabels(list(items_by_type.keys()))
+        self.table_widget.setSelectionMode(QAbstractItemView.SingleSelection)
 
         max_rows = max(len(items) for items in items_by_type.values())
         self.table_widget.setRowCount(max_rows)

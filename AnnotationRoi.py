@@ -24,6 +24,7 @@ class AnnotationRoi:
         self.x_start = x_start
         self.x_end = x_end
         self.annotation_text = annotation_text
+        self.annotation_type = self.annotation_text.split("::")[0]
 
         self.create_roi()
         self.show()
@@ -96,6 +97,11 @@ class AnnotationRoi:
         self.clear()
         for observer in self._observers:
             observer.delete(self)
+
+    def update(self):
+        self.clear()
+        self.create_roi()
+        self.show()
 
 
 class AnnotationRoiEventObserver:
