@@ -290,7 +290,7 @@ class MyApp(QMainWindow):
         # print(self.x_data.max())
         view_box.setXRange(self.x_data.min(), self.x_data.max())
         view_box.setYRange(
-            self.y_data_min - (self.tags_manager.get_num_of_tags() * TAGS_HEIGHT),
+            self.y_data_min - (self.tags_manager.get_num_of_types() * TAGS_HEIGHT),
             self.y_data_max,
         )
         view_range = view_box.viewRange()

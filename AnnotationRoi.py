@@ -35,7 +35,9 @@ class AnnotationRoi:
         # y_min: -22.847815470229374 y_max 24.77754347022937
         y_min, y_max = self.plot_widget.getAxis("left").range
 
-        tag_index = self.tags_manager.get_index(self.annotation_text)
+        tag_index = self.tags_manager.get_index_of_type(
+            self.annotation_text.split("::")[0]
+        )
 
         self.roi: RectROI = RectROI(
             [self.x_start, y_min + (tag_index * TAGS_HEIGHT)],
@@ -52,7 +54,7 @@ class AnnotationRoi:
         self.roi.setZValue(10)
 
         self.text_item = pg.TextItem(
-            text=self.annotation_text, anchor=(0.5, 0.5), color="y"
+            text=self.annotation_text.split("::")[2], anchor=(0.5, 0.5), color="y"
         )
         roi_rect = self.roi.boundingRect()
         self.text_item.setPos(

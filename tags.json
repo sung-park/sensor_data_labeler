@@ -1,37 +1,117 @@
 {
     "types": [
         {
+            "name": "Posture",
+            "tags": [
+                {
+                    "name": "Standing",
+                    "description": "서있기"
+                },
+                {
+                    "name": "Bipedal",
+                    "description": "두발서기"
+                },
+                {
+                    "name": "Sitting",
+                    "description": "앉기"
+                },
+                {
+                    "name": "LyingDown",
+                    "description": "엎드리기"
+                },
+                {
+                    "name": "Lying",
+                    "description": "누워있기"
+                }
+            ]
+        },
+        {
             "name": "Activity",
             "tags": [
                 {
-                    "name": "Sleeping"
+                    "name": "Running",
+                    "description": "뛰기"
                 },
                 {
-                    "name": "Walking"
+                    "name": "Trotting",
+                    "description": "빠르게걷기"
                 },
                 {
-                    "name": "Running"
+                    "name": "Walking",
+                    "description": "걷기"
                 },
                 {
-                    "name": "Resting"
+                    "name": "Roaming",
+                    "description": "어슬렁거리기(느리게걷기)"
                 },
                 {
-                    "name": "Peeing"
+                    "name": "Jumping",
+                    "description": "점프하기"
                 },
                 {
-                    "name": "Scratching"
+                    "name": "Eating",
+                    "description": "사료먹기"
                 },
                 {
-                    "name": "Licking"
+                    "name": "Drinking",
+                    "description": "물마시기"
                 },
                 {
-                    "name": "Eating"
+                    "name": "Walking",
+                    "description": "걷기"
                 },
                 {
-                    "name": "Drinking"
+                    "name": "Sniffing",
+                    "description": "냄새맡기"
                 },
                 {
-                    "name": "Barking"
+                    "name": "Licking",
+                    "description": "물체핥기"
+                },
+                {
+                    "name": "Grooming",
+                    "description": "자기자신핥기"
+                },
+                {
+                    "name": "ScratchObject",
+                    "description": "물체긁기"
+                },
+                {
+                    "name": "ScratchSelf",
+                    "description": "자신긁기"
+                },
+                {
+                    "name": "Shedding",
+                    "description": "털기"
+                },
+                {
+                    "name": "Poopoing",
+                    "description": "대변"
+                },
+                {
+                    "name": "Peeing",
+                    "description": "소변"
+                },
+                {
+                    "name": "PlayWithToys",
+                    "description": "장난감놀이"
+                },
+                {
+                    "name": "Sleeping",
+                    "description": "수면"
+                }
+            ]
+        },
+        {
+            "name": "Sound",
+            "tags": [
+                {
+                    "name": "Barking",
+                    "description": "짖기"
+                },
+                {
+                    "name": "Others",
+                    "description": "짖기제외모든소리"
                 }
             ]
         }
