@@ -45,9 +45,11 @@ class MediaPlayersManager:
     def set_position(self, position, target_player_id: int = -1):
         if target_player_id == -1:
             for media_player in self.media_players:
-                media_player.set_position(position)
+                media_player.set_position(position + media_player.video_offset)
         else:
-            self.media_players[target_player_id].set_position(position)
+            self.media_players[target_player_id].set_position(
+                position + self.media_players[target_player_id].video_offset
+            )
 
     def clear_grid_layout(layout) -> List[QWidget]:
         widgets = []

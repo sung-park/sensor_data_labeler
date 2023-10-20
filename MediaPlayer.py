@@ -16,6 +16,7 @@ class MediaPlayer:
         # self.createViewPlayer()
 
     rotation_degree = 0
+    video_offset = 0
 
     @log_method_call
     def create_player_widget(self) -> QWidget:
@@ -56,6 +57,12 @@ class MediaPlayer:
         self.openButton = QPushButton("Open")
         self.openButton.clicked.connect(self.open_video_file_dialog)
 
+        self.offsetInput = QLineEdit()
+        self.offsetInput.setPlaceholderText("Offset (ms)")
+        self.offsetApplyButton = QPushButton("Apply")
+        self.offsetInput.setFixedWidth(100)
+        self.offsetApplyButton.clicked.connect(self.apply_offset)
+
         # Create layouts to place inside widget
         controlLayout = QHBoxLayout()
         controlLayout.setContentsMargins(0, 0, 0, 0)
@@ -65,6 +72,8 @@ class MediaPlayer:
         controlLayout.addWidget(self.openButton)
 
         statusLayout = QHBoxLayout()
+        statusLayout.addWidget(self.offsetInput)
+        statusLayout.addWidget(self.offsetApplyButton)
         statusLayout.addWidget(self.currentTimeLabel)
 
         layout = QVBoxLayout()
@@ -84,6 +93,9 @@ class MediaPlayer:
         self.mediaPlayer.error.connect(self.handleError)
 
         return wid
+
+    def apply_offset(self):
+        self.video_offset = int(self.offsetInput.text())
 
     def rotate(self):
         self.rotation_degree = self.rotation_degree + 90
@@ -121,7 +133,7 @@ class MediaPlayer:
         self.positionSlider.setValue(position)
 
         # self.update_plot_progress(position)
-        self.position_changed_callback(position)
+        self.position_changed_callback(position - self.video_offset)
 
     def durationChanged(self, duration):
         self.positionSlider.setRange(0, duration)
