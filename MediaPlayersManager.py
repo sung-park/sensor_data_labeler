@@ -83,3 +83,6 @@ class MediaPlayersManager:
         grid_layout.addWidget(self.media_players_widgets[1], 1, 0)
         grid_layout.addWidget(self.media_players_widgets[2], 1, 1)
         grid_layout.addWidget(self.media_players_widgets[3], 1, 2)
+
+    def change_offset(self, video_offset):
+        self.media_players[0].change_offset(video_offset)

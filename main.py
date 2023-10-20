@@ -206,6 +206,7 @@ class MyApp(QMainWindow):
             csv_data_dialog.exec_()
 
     sensor_data_csv_filename = None
+    sensor_data_json_filename = None
 
     def open_data_file(self):
         options = QFileDialog.Options()
@@ -257,6 +258,23 @@ class MyApp(QMainWindow):
         self.ask_and_open_annotation_file(
             self.sensor_data_csv_filename.replace("csv", "ann")
         )
+
+        self.sensor_data_json_filename = csv_filename.replace(".csv", ".json")
+        if os.path.isfile(self.sensor_data_json_filename):
+            with open(
+                self.sensor_data_json_filename, "r", encoding="utf-8"
+            ) as json_file:
+                try:
+                    json_data = json.load(json_file)
+
+                    video_start_time_ms = json_data.get("videoStartTimeMs")
+                    sensor_start_time_ms = json_data.get("sensorStartTimeMs")
+
+                    self.media_players_manager.change_offset(
+                        sensor_start_time_ms - video_start_time_ms
+                    )
+                except json.JSONDecodeError:
+                    print("Unable to parse the JSON file.")
 
     def ask_and_open_annotation_file(self, filename):
         if os.path.exists(filename):

@@ -97,6 +97,10 @@ class MediaPlayer:
     def apply_offset(self):
         self.video_offset = int(self.offsetInput.text())
 
+    def change_offset(self, video_offset: int):
+        self.offsetInput.setText(str(video_offset))
+        self.apply_offset()
+
     def rotate(self):
         self.rotation_degree = self.rotation_degree + 90
         if self.rotation_degree >= 360:
