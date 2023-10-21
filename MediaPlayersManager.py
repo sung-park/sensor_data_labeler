@@ -63,6 +63,17 @@ class MediaPlayersManager:
         return widgets
 
     @log_method_call
+    def set_view_mode(self, layout_info):
+        for i, player_widget in enumerate(self.media_players_widgets):
+            player_widget.setHidden(False)
+
+        grid_layout = self.video_players_widget.layout()
+        for i, (row, col, rowspan, colspan) in enumerate(layout_info):
+            grid_layout.addWidget(
+                self.media_players_widgets[i], row, col, rowspan, colspan
+            )
+
+    @log_method_call
     def set_view_mode_single(self):
         grid_layout: QGridLayout = self.video_players_widget.layout()
 
@@ -74,36 +85,15 @@ class MediaPlayersManager:
 
     @log_method_call
     def set_view_mode_even(self):
-        for _, player_widget in enumerate(self.media_players_widgets):
-            player_widget.setHidden(False)
-
-        grid_layout: QGridLayout = self.video_players_widget.layout()
-        grid_layout.addWidget(self.media_players_widgets[0], 0, 0)
-        grid_layout.addWidget(self.media_players_widgets[1], 0, 1)
-        grid_layout.addWidget(self.media_players_widgets[2], 1, 0)
-        grid_layout.addWidget(self.media_players_widgets[3], 1, 1)
+        self.set_view_mode([(0, 0, 1, 1), (0, 1, 1, 1), (1, 0, 1, 1), (1, 1, 1, 1)])
 
     @log_method_call
     def set_view_mode_portrait(self):
-        for _, player_widget in enumerate(self.media_players_widgets):
-            player_widget.setHidden(False)
-
-        grid_layout: QGridLayout = self.video_players_widget.layout()
-        grid_layout.addWidget(self.media_players_widgets[0], 0, 0, 3, 1)
-        grid_layout.addWidget(self.media_players_widgets[1], 0, 1)
-        grid_layout.addWidget(self.media_players_widgets[2], 1, 1)
-        grid_layout.addWidget(self.media_players_widgets[3], 2, 1)
+        self.set_view_mode([(0, 0, 3, 1), (0, 1, 1, 1), (1, 1, 1, 1), (2, 1, 1, 1)])
 
     @log_method_call
     def set_view_mode_landscape(self):
-        for _, player_widget in enumerate(self.media_players_widgets):
-            player_widget.setHidden(False)
-
-        grid_layout: QGridLayout = self.video_players_widget.layout()
-        grid_layout.addWidget(self.media_players_widgets[0], 0, 0, 1, 3)
-        grid_layout.addWidget(self.media_players_widgets[1], 1, 0)
-        grid_layout.addWidget(self.media_players_widgets[2], 1, 1)
-        grid_layout.addWidget(self.media_players_widgets[3], 1, 2)
+        self.set_view_mode([(0, 0, 1, 3), (1, 0, 1, 1), (1, 1, 1, 1), (1, 2, 1, 1)])
 
     def change_offset(self, video_offset):
         self.media_players[0].change_offset(video_offset)

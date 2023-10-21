@@ -456,14 +456,6 @@ class MyApp(QMainWindow):
             self.roi_start.clear()
             self.roi_end.clear()
 
-    def keyPressEvent(self, key_event: QKeyEvent) -> None:
-        pass
-        # if key_event.key() == Qt.Key.Key_S and not key_event.isAutoRepeat():
-        #     print("S pressed")
-
-        # if key_event.key() == Qt.Key.Key_E and not key_event.isAutoRepeat():
-        #     print("E pressed")
-
     def keyReleaseEvent(self, key_event: QKeyEvent) -> None:
         if key_event.key() == Qt.Key.Key_S and not key_event.isAutoRepeat():
             self.on_roi_start_pressed()
