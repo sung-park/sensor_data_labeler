@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import os
 import sys
+from typing import List
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon, QDesktopServices
 import pandas as pd
@@ -374,6 +375,15 @@ class MyApp(QMainWindow):
             :-3
         ] + datetime_obj.strftime(" %Y-%m-%d")
         self.plot_widget_progress_text.setText(formatted_datetime)
+
+        subtitle_text = ""
+        annotations: List[AnnotationRoi] = self.annotation_manager.get_annotations(
+            self.current_progress
+        )
+        subtitle_text = "/".join(
+            annotation.annotation_text.split("::")[2] for annotation in annotations
+        )
+        self.media_players_manager.set_subtitle_text(subtitle_text)
 
     @log_method_call
     def on_roi_start_pressed(self):

@@ -86,3 +86,6 @@ class MediaPlayersManager:
 
     def change_offset(self, video_offset):
         self.media_players[0].change_offset(video_offset)
+
+    def set_subtitle_text(self, text):
+        self.media_players[0].set_subtitle_text(text)

@@ -87,3 +87,12 @@ class AnnotationManager(AnnotationRoiEventObserver):
             annotation1.x_start, annotation2.x_start
         )
         return max(0, overlap_area)
+
+    def get_annotations(self, x: int) -> List[AnnotationRoi]:
+        matching_annotations = []
+
+        for annotation in self.annotations:
+            if annotation.x_start <= x <= annotation.x_end:
+                matching_annotations.append(annotation)
+
+        return matching_annotations
