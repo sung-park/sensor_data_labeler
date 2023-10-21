@@ -73,7 +73,7 @@ class MediaPlayer:
         self.rotateButton = QPushButton()
         self.rotateButton.setEnabled(True)
         self.rotateButton.setIcon(self.style.standardIcon(QStyle.SP_BrowserReload))
-        self.rotateButton.clicked.connect(self.rotate)
+        self.rotateButton.clicked.connect(self.rotate_clicked)
 
         self.positionSlider = QSlider(Qt.Horizontal)
         self.positionSlider.setRange(0, 0)
@@ -148,10 +148,13 @@ class MediaPlayer:
         self.offsetInput.setText(str(video_offset))
         self.apply_offset()
 
-    def rotate(self):
-        self.rotation_degree = self.rotation_degree + 90
+    def rotate_clicked(self):
+        self.rotate_video()
+
+    def rotate_video(self, angle=90):
+        self.rotation_degree = self.rotation_degree + angle
         if self.rotation_degree >= 360:
-            self.rotation_degree = 0
+            self.rotation_degree = self.rotation_degree % 360
 
         # 비디오 아이템의 중심을 회전 중심으로 설정
         self._videoitem.setTransformOriginPoint(self._videoitem.boundingRect().center())

@@ -28,6 +28,8 @@ class MediaPlayersManager:
 
         main_layout.addWidget(self.video_players_widget)
 
+        self.set_view_mode_single()
+
     @log_method_call
     def open_video_file(self, target_id: int, fileName: str):
         if self.media_players[target_id]:
@@ -61,7 +63,20 @@ class MediaPlayersManager:
         return widgets
 
     @log_method_call
+    def set_view_mode_single(self):
+        grid_layout: QGridLayout = self.video_players_widget.layout()
+
+        for i, player_widget in enumerate(self.media_players_widgets):
+            if i == 0:
+                player_widget.setHidden(False)
+            else:
+                player_widget.setHidden(True)
+
+    @log_method_call
     def set_view_mode_even(self):
+        for _, player_widget in enumerate(self.media_players_widgets):
+            player_widget.setHidden(False)
+
         grid_layout: QGridLayout = self.video_players_widget.layout()
         grid_layout.addWidget(self.media_players_widgets[0], 0, 0)
         grid_layout.addWidget(self.media_players_widgets[1], 0, 1)
@@ -70,6 +85,9 @@ class MediaPlayersManager:
 
     @log_method_call
     def set_view_mode_portrait(self):
+        for _, player_widget in enumerate(self.media_players_widgets):
+            player_widget.setHidden(False)
+
         grid_layout: QGridLayout = self.video_players_widget.layout()
         grid_layout.addWidget(self.media_players_widgets[0], 0, 0, 3, 1)
         grid_layout.addWidget(self.media_players_widgets[1], 0, 1)
@@ -78,6 +96,9 @@ class MediaPlayersManager:
 
     @log_method_call
     def set_view_mode_landscape(self):
+        for _, player_widget in enumerate(self.media_players_widgets):
+            player_widget.setHidden(False)
+
         grid_layout: QGridLayout = self.video_players_widget.layout()
         grid_layout.addWidget(self.media_players_widgets[0], 0, 0, 1, 3)
         grid_layout.addWidget(self.media_players_widgets[1], 1, 0)

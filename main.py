@@ -42,6 +42,7 @@ class MyApp(QMainWindow):
         menubar.setNativeMenuBar(False)
 
         self.add_file_menu(menubar)
+        menubar.addMenu(self.create_view_menu())
 
         keyboard_shortcuts_reference = QAction(
             QIcon("open.png"), "Keyboard Shortcuts Reference", self
@@ -50,13 +51,11 @@ class MyApp(QMainWindow):
             self.open_keyboard_shortcuts_reference
         )
 
-        self.add_view_menu(menubar)
-
         helpMenu = menubar.addMenu("&Help")
         helpMenu.addAction(keyboard_shortcuts_reference)
 
         self.setWindowTitle("PX Sensor Data Labeler")
-        self.setGeometry(300, 300, 1536, 768)
+        self.setGeometry(0, 0, 1440, 720)
 
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
@@ -96,21 +95,30 @@ class MyApp(QMainWindow):
         file_menu.addAction(action_save_annotation)
         file_menu.addAction(action_export_csv_with_annotation)
 
-    def add_view_menu(self, menubar: QMenuBar):
-        view_mode = QMenu("View Mode", self)
-        group = QActionGroup(view_mode)
-        texts = ["Media View - Even", "Media View - Portrait", "Media View - Landscape"]
-        action_even = QAction("Media View - Even", self)
-        for text in texts:
-            action = QAction(text, view_mode, checkable=True, checked=text == texts[0])
-            view_mode.addAction(action)
-            group.addAction(action)
-        group.setExclusive(True)
-        group.triggered.connect(self.on_view_mode_changed)
-        menubar.addMenu(view_mode)
+    def create_view_menu(self) -> QMenu:
+        view_modes = ["Single", "Even", "Portrait", "Landscape"]
+        menu = QMenu("&View Mode", self)
+
+        action_group = QActionGroup(menu)
+        action_group.setExclusive(True)
+        action_group.triggered.connect(self.on_view_mode_changed)
+
+        for view_mode in view_modes:
+            action = QAction(
+                view_mode,
+                menu,
+                checkable=True,
+                checked=view_mode == view_modes[0],
+            )
+            menu.addAction(action)
+            action_group.addAction(action)
+
+        return menu
 
     def on_view_mode_changed(self, action):
-        if "Even" in action.text():
+        if "Single" in action.text():
+            self.media_players_manager.set_view_mode_single()
+        elif "Even" in action.text():
             self.media_players_manager.set_view_mode_even()
         elif "Portrait" in action.text():
             self.media_players_manager.set_view_mode_portrait()
