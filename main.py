@@ -21,7 +21,7 @@ from PyQt5.QtGui import QMouseEvent
 from MediaPlayersManager import MediaPlayersManager
 from PopupWindow import TagSelectionDialog
 from TagsManager import TagsManager
-from config import TAGS_HEIGHT
+from config import *
 from util import log_method_call
 
 
@@ -31,9 +31,9 @@ class MyApp(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         print("initUI...")
 
         self.statusBar()
@@ -41,21 +41,12 @@ class MyApp(QMainWindow):
         menubar = self.menuBar()
         menubar.setNativeMenuBar(False)
 
-        self.add_file_menu(menubar)
+        menubar.addMenu(self.create_file_menu())
         menubar.addMenu(self.create_view_menu())
-
-        keyboard_shortcuts_reference = QAction(
-            QIcon("open.png"), "Keyboard Shortcuts Reference", self
-        )
-        keyboard_shortcuts_reference.triggered.connect(
-            self.open_keyboard_shortcuts_reference
-        )
-
-        helpMenu = menubar.addMenu("&Help")
-        helpMenu.addAction(keyboard_shortcuts_reference)
+        menubar.addMenu(self.create_help_menu())
 
         self.setWindowTitle("PX Sensor Data Labeler")
-        self.setGeometry(0, 0, 1440, 720)
+        self.setGeometry(0, 0, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT)
 
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
@@ -71,29 +62,28 @@ class MyApp(QMainWindow):
 
         self.show()
 
-    def add_file_menu(self, menubar):
-        action_open_csv_file = QAction("Open CSV Data File", self)
-        action_open_csv_file.setStatusTip("Open CSV Data File")
-        action_open_csv_file.triggered.connect(self.open_data_file)
+    def create_help_menu(self) -> QMenu:
+        menu = QMenu("&Help", self)
+        action = QAction("Keyboard Shortcuts Reference", self)
+        action.triggered.connect(self.open_keyboard_shortcuts_reference)
+        menu.addAction(action)
 
-        action_save_annotation = QAction("Save Annotation File", self)
-        action_save_annotation.setStatusTip("Save Annotation File")
-        action_save_annotation.triggered.connect(self.save_annotation_file)
+        return menu
 
-        action_export_csv_with_annotation = QAction(
-            "Export CSV Data File With Annotation", self
-        )
-        action_export_csv_with_annotation.setStatusTip(
-            "Export CSV Data File With Annotation"
-        )
-        action_export_csv_with_annotation.triggered.connect(
-            self.export_csv_with_annotation
-        )
+    def create_file_menu(self):
+        menu = QMenu("&File", self)
 
-        file_menu = menubar.addMenu("&File")
-        file_menu.addAction(action_open_csv_file)
-        file_menu.addAction(action_save_annotation)
-        file_menu.addAction(action_export_csv_with_annotation)
+        actions = [
+            ("Open CSV Data File", self.open_data_file),
+            ("Save Annotation File", self.save_annotation_file),
+            ("Export CSV Data File With Annotation", self.export_csv_with_annotation),
+        ]
+
+        for action_text, action_function in actions:
+            action = QAction(action_text, self, triggered=action_function)
+            menu.addAction(action)
+
+        return menu
 
     def create_view_menu(self) -> QMenu:
         view_modes = ["Single", "Even", "Portrait", "Landscape"]
