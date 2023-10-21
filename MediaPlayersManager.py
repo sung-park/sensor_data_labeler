@@ -16,8 +16,8 @@ class MediaPlayersManager:
                 media_player = MediaPlayer(
                     style,
                     main_window,
-                    update_plot_progress,
                 )
+                media_player.add_position_changed_observer(update_plot_progress)
                 self.media_players.append(media_player)
                 widget = media_player.create_player_widget()
                 self.media_players_widgets.append(widget)

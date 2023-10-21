@@ -10,179 +10,173 @@ from util import log_method_call
 
 
 class MediaPlayer:
-    def __init__(self, style, main_window, position_changed_callback) -> None:
+    def __init__(self, style, main_window) -> None:
         self.style = style
         self.main_window = main_window
-        self.position_changed_callback = position_changed_callback
 
-    rotation_degree = 0
-    video_offset = 0
-    subtitle_text = None
+        self.rotation_degree = 0
+        self.video_offset = 0
+        self.subtitle_text = None
+
+    def add_position_changed_observer(self, observer):
+        self.position_changed_callback = observer
 
     def set_subtitle_text(self, text: str):
         if text == self.subtitle_text:
             return
         self.subtitle_text = text
+
         self.subtitle_item.setPlainText(text)
         self.update_subtitle_pos()
         self.subtitle_background_rect.setRect(self.subtitle_item.boundingRect())
 
     @log_method_call
     def create_player_widget(self) -> QWidget:
-        # Create a widget for window contents
-        wid = QWidget(self.main_window)
+        widget = QWidget(self.main_window)
 
-        self._scene = QGraphicsScene(wid)
-        self._gv = QGraphicsView(self._scene)
+        self.video_scene = QGraphicsScene(widget)
+        self.video_item = QGraphicsVideoItem()
+        self.video_scene.addItem(self.video_item)
+        self.video_scene.addItem(self.create_subtitle_item_group())
+        self.video_view = QGraphicsView(self.video_scene)
 
-        self.subtitle_item = QGraphicsTextItem("")
-        self.subtitle_item.setDefaultTextColor(Qt.red)  # 텍스트 색상 설정
-        subtitle_item_font = QFont("Arial", 12)
-        subtitle_item_font.setBold(True)
-        self.subtitle_item.setFont(subtitle_item_font)  # 폰트 및 글꼴 크기 설정
-        # self.subtitle_item.setPlainText("New Subtitle Text")
+        self.create_media_player()
 
-        # Create a QGraphicsRectItem to set the background
+        layout = QVBoxLayout()
+        layout.addWidget(self.video_view)
+        layout.addLayout(self.create_control_layout())
+        layout.addLayout(self.create_status_layout())
+        widget.setLayout(layout)
+
+        return widget
+
+    def create_media_player(self):
+        self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+        self.media_player.setNotifyInterval(50)
+        self.media_player.setVideoOutput(self.video_item)
+        self.media_player.stateChanged.connect(self.mediaStateChanged)
+        self.media_player.positionChanged.connect(self.positionChanged)
+        self.media_player.durationChanged.connect(self.durationChanged)
+        self.media_player.error.connect(self.handleError)
+
+    def create_status_layout(self):
+        self.offset_text_edit = QLineEdit(placeholderText="Offset (ms)")
+        self.offset_text_edit.setFixedWidth(100)
+        self.offset_text_edit.setValidator(QIntValidator())
+
+        self.offset_apply_button = QPushButton("Apply", clicked=self.apply_offset)
+        self.current_time_label = QLabel(
+            sizePolicy=QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
+        )
+
+        status_layout = QHBoxLayout()
+        status_layout.addWidget(self.offset_text_edit)
+        status_layout.addWidget(self.offset_apply_button)
+        status_layout.addWidget(self.current_time_label)
+
+        return status_layout
+
+    def create_control_layout(self):
+        self.play_button = QPushButton()
+        self.play_button.setEnabled(False)
+        self.play_button.setIcon(self.style.standardIcon(QStyle.SP_MediaPlay))
+        self.play_button.clicked.connect(self.play)
+
+        self.rotate_button = QPushButton()
+        self.rotate_button.setEnabled(True)
+        self.rotate_button.setIcon(self.style.standardIcon(QStyle.SP_BrowserReload))
+        self.rotate_button.clicked.connect(self.rotate_clicked)
+        self.rotate_button.setFocusPolicy(Qt.NoFocus)
+
+        self.position_slider = QSlider(Qt.Horizontal)
+        self.position_slider.setRange(0, 0)
+        self.position_slider.sliderMoved.connect(self.setPosition)
+
+        self.open_video_button = QPushButton("Open")
+        self.open_video_button.clicked.connect(self.open_video_dialog)
+
+        control_layout = QHBoxLayout()
+        control_layout.setContentsMargins(0, 0, 0, 0)
+        control_layout.addWidget(self.play_button)
+        control_layout.addWidget(self.rotate_button)
+        control_layout.addWidget(self.position_slider)
+        control_layout.addWidget(self.open_video_button)
+
+        return control_layout
+
+    def create_subtitle_item_group(self):
+        self.subtitle_item = QGraphicsTextItem()
+        self.subtitle_item.setDefaultTextColor(Qt.red)
+        self.subtitle_item.setFont(QFont("Arial", 12, QFont.Bold))
+
         self.subtitle_background_rect = QGraphicsRectItem(
             self.subtitle_item.boundingRect()
         )
-        # Set the pen of the background rect to be transparent (no border)
-        border_pen = QPen(Qt.NoPen)
-        background_color = QColor(255, 255, 255, 128)  # White with 50% transparency
-        self.subtitle_background_rect.setPen(border_pen)
-        self.subtitle_background_rect.setBrush(background_color)
+        self.subtitle_background_rect.setPen(QPen(Qt.NoPen))
+        self.subtitle_background_rect.setBrush(QColor(255, 255, 255, 128))
 
-        # Group the text item and the background rect
         group = QGraphicsItemGroup()
         group.addToGroup(self.subtitle_background_rect)
         group.addToGroup(self.subtitle_item)
 
-        self._videoitem = QGraphicsVideoItem()
-        self._scene.addItem(self._videoitem)
-        # self._scene.addItem(self.subtitle_item)
-        self._scene.addItem(group)
-
-        self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
-        self.mediaPlayer.setNotifyInterval(50)
-
-        self.playButton = QPushButton()
-        self.playButton.setEnabled(False)
-        self.playButton.setIcon(self.style.standardIcon(QStyle.SP_MediaPlay))
-        self.playButton.clicked.connect(self.play)
-
-        self.rotateButton = QPushButton()
-        self.rotateButton.setEnabled(True)
-        self.rotateButton.setIcon(self.style.standardIcon(QStyle.SP_BrowserReload))
-        self.rotateButton.clicked.connect(self.rotate_clicked)
-
-        self.positionSlider = QSlider(Qt.Horizontal)
-        self.positionSlider.setRange(0, 0)
-        self.positionSlider.sliderMoved.connect(self.setPosition)
-
-        self.errorLabel = QLabel()
-        self.errorLabel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
-
-        self.currentTimeLabel = QLabel()
-        self.currentTimeLabel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
-
-        self.openButton = QPushButton("Open")
-        self.openButton.clicked.connect(self.open_video_file_dialog)
-
-        self.offsetInput = QLineEdit()
-        self.offsetInput.setPlaceholderText("Offset (ms)")
-        self.offsetApplyButton = QPushButton("Apply")
-        self.offsetInput.setFixedWidth(100)
-        self.offsetApplyButton.clicked.connect(self.apply_offset)
-
-        # Create layouts to place inside widget
-        controlLayout = QHBoxLayout()
-        controlLayout.setContentsMargins(0, 0, 0, 0)
-        controlLayout.addWidget(self.playButton)
-        controlLayout.addWidget(self.rotateButton)
-        controlLayout.addWidget(self.positionSlider)
-        controlLayout.addWidget(self.openButton)
-
-        statusLayout = QHBoxLayout()
-        statusLayout.addWidget(self.offsetInput)
-        statusLayout.addWidget(self.offsetApplyButton)
-        statusLayout.addWidget(self.currentTimeLabel)
-
-        layout = QVBoxLayout()
-        # layout.addWidget(videoWidget)
-        layout.addWidget(self._gv)
-        layout.addLayout(controlLayout)
-        layout.addLayout(statusLayout)
-
-        # Set widget to contain window contents
-        wid.setLayout(layout)
-
-        # self.mediaPlayer.setVideoOutput(videoWidget)
-        self.mediaPlayer.setVideoOutput(self._videoitem)
-        self.mediaPlayer.stateChanged.connect(self.mediaStateChanged)
-        self.mediaPlayer.positionChanged.connect(self.positionChanged)
-        self.mediaPlayer.durationChanged.connect(self.durationChanged)
-        self.mediaPlayer.error.connect(self.handleError)
-
-        return wid
+        return group
 
     def update_subtitle_pos(self):
-        # _scene의 크기 얻기
-        scene_rect = self._scene.sceneRect()
-        # print(f"scene_rect: {scene_rect}")
-
-        # subtitle_item의 크기 얻기
+        # Get the scene rectangle and bounding rectangle of the subtitle item
+        scene_rect = self.video_scene.sceneRect()
         subtitle_rect = self.subtitle_item.boundingRect()
 
-        # _scene의 가운데 하단 위치 계산
+        # Calculate the x and y positions to center the subtitle
         x_pos = (scene_rect.width() - subtitle_rect.width()) / 2
         y_pos = (scene_rect.height() - subtitle_rect.height()) / 2
 
-        # subtitle_item의 위치 설정
+        # Set the positions of the subtitle item and the background rectangle
         self.subtitle_item.setPos(x_pos, y_pos)
         self.subtitle_background_rect.setPos(x_pos, y_pos)
 
     def apply_offset(self):
-        self.video_offset = int(self.offsetInput.text())
+        self.video_offset = int(self.offset_text_edit.text())
 
     def change_offset(self, video_offset: int):
-        self.offsetInput.setText(str(video_offset))
+        self.offset_text_edit.setText(str(video_offset))
         self.apply_offset()
 
     def rotate_clicked(self):
         self.rotate_video()
 
     def rotate_video(self, angle=90):
-        self.rotation_degree = self.rotation_degree + angle
-        if self.rotation_degree >= 360:
-            self.rotation_degree = self.rotation_degree % 360
+        # Update the rotation degree and ensure it stays within 0-359 range
+        self.rotation_degree = (self.rotation_degree + angle) % 360
 
-        # 비디오 아이템의 중심을 회전 중심으로 설정
-        self._videoitem.setTransformOriginPoint(self._videoitem.boundingRect().center())
+        # Set the rotation center at the center of the video item
+        self.video_item.setTransformOriginPoint(self.video_item.boundingRect().center())
 
-        # video item 회전
-        self._videoitem.setRotation(self.rotation_degree)
-        self._videoitem.setPos(0, 0)
+        # Rotate the video item and reset its position
+        self.video_item.setRotation(self.rotation_degree)
+        self.video_item.setPos(0, 0)
 
-        # video item을 화면에 맞추기 (비율 유지 및 확장)
-        self._gv.fitInView(self._videoitem, Qt.KeepAspectRatio)
+        # Fit the video item within the view while maintaining its aspect ratio
+        self.video_view.fitInView(self.video_item, Qt.KeepAspectRatio)
 
-        # subtitle 위치 업데이트
+        # Update the position of subtitles
         self.update_subtitle_pos()
 
     def play(self):
-        if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
-            self.mediaPlayer.pause()
+        if self.media_player.state() == QMediaPlayer.PlayingState:
+            self.media_player.pause()
         else:
-            self.mediaPlayer.play()
+            self.media_player.play()
 
     def setPosition(self, position):
-        self.mediaPlayer.setPosition(position)
+        self.media_player.setPosition(position)
 
     def mediaStateChanged(self, state):
-        if self.mediaPlayer.state() == QMediaPlayer.PlayingState:
-            self.playButton.setIcon(self.style.standardIcon(QStyle.SP_MediaPause))
-        else:
-            self.playButton.setIcon(self.style.standardIcon(QStyle.SP_MediaPlay))
+        icon = (
+            QStyle.SP_MediaPause
+            if self.media_player.state() == QMediaPlayer.PlayingState
+            else QStyle.SP_MediaPlay
+        )
+        self.play_button.setIcon(self.style.standardIcon(icon))
 
         self.update_subtitle_pos()
 
@@ -193,39 +187,39 @@ class MediaPlayer:
         timeStr = "{:02}:{:02}:{:02}.{:03}".format(
             int(hours), int(minutes), int(seconds), int(position % 1000)
         )
-        self.currentTimeLabel.setText(timeStr)
+        self.current_time_label.setText(timeStr)
 
-        self.positionSlider.setValue(position)
+        self.position_slider.setValue(position)
 
-        # self.update_plot_progress(position)
-        self.position_changed_callback(position - self.video_offset)
+        if self.position_changed_callback:
+            self.position_changed_callback(position - self.video_offset)
 
     def durationChanged(self, duration):
-        self.positionSlider.setRange(0, duration)
+        self.position_slider.setRange(0, duration)
 
     def setPosition(self, position):
-        self.mediaPlayer.setPosition(position)
+        self.media_player.setPosition(position)
 
     def handleError(self):
-        self.playButton.setEnabled(False)
-        error_message = "QMediaPlayerError(" + self.mediaPlayer.errorString() + ")"
+        self.play_button.setEnabled(False)
+        error_message = "QMediaPlayerError(" + self.media_player.errorString() + ")"
         QMessageBox.critical(self.main_window, "Error", error_message)
 
     def set_media(self, media_content):
-        self.mediaPlayer.setMedia(media_content)
+        self.media_player.setMedia(media_content)
 
     def set_play_button_enabled(self, enabled):
-        self.playButton.setEnabled(enabled)
+        self.play_button.setEnabled(enabled)
 
     def set_position(self, position):
-        if self.playButton.isEnabled():
-            self.mediaPlayer.setPosition(position)
+        if self.play_button.isEnabled():
+            self.media_player.setPosition(position)
 
     def open_video_file(self, fileName: str):
         self.set_media(QMediaContent(QUrl.fromLocalFile(fileName)))
         self.set_play_button_enabled(True)
 
-    def open_video_file_dialog(self):
+    def open_video_dialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
         file_dialog = QFileDialog(self.main_window)
