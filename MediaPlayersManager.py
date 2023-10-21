@@ -53,15 +53,6 @@ class MediaPlayersManager:
                 position + self.media_players[target_player_id].video_offset
             )
 
-    def clear_grid_layout(layout) -> List[QWidget]:
-        widgets = []
-        while layout.count():
-            child = layout.takeAt(0)
-            if child.widget():
-                widgets.append(child.wiget())
-                child.widget().deleteLater()
-        return widgets
-
     @log_method_call
     def set_view_mode(self, layout_info):
         for i, player_widget in enumerate(self.media_players_widgets):
@@ -75,13 +66,9 @@ class MediaPlayersManager:
 
     @log_method_call
     def set_view_mode_single(self):
-        grid_layout: QGridLayout = self.video_players_widget.layout()
-
-        for i, player_widget in enumerate(self.media_players_widgets):
-            if i == 0:
-                player_widget.setHidden(False)
-            else:
-                player_widget.setHidden(True)
+        self.media_players_widgets[0].setHidden(False)
+        for player_widget in self.media_players_widgets[1:]:
+            player_widget.setHidden(True)
 
     @log_method_call
     def set_view_mode_even(self):
