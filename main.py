@@ -290,7 +290,7 @@ class MyApp(QMainWindow):
             reply = QMessageBox.question(
                 self,
                 "Reading Annotation File",
-                "An Annotation File (.ann) with a name that matches the CSV file exists. Would you like to read it together?",
+                "An annotation file (.ann) with a name matching the CSV file exists. Would you like to view it together?",
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No,
             )
