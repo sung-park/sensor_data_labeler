@@ -54,9 +54,9 @@ class MediaPlayer:
         self.media_player = QMediaPlayer(None, QMediaPlayer.VideoSurface)
         self.media_player.setNotifyInterval(50)
         self.media_player.setVideoOutput(self.video_item)
-        self.media_player.stateChanged.connect(self.mediaStateChanged)
-        self.media_player.positionChanged.connect(self.positionChanged)
-        self.media_player.durationChanged.connect(self.durationChanged)
+        self.media_player.stateChanged.connect(self.media_state_changed)
+        self.media_player.positionChanged.connect(self.position_changed)
+        self.media_player.durationChanged.connect(self.duration_changed)
         self.media_player.error.connect(self.handleError)
 
     def create_status_layout(self):
@@ -155,6 +155,9 @@ class MediaPlayer:
         self.video_item.setRotation(self.rotation_degree)
         self.video_item.setPos(0, 0)
 
+        self.adjust_video_size_and_subtitle_pos()
+
+    def adjust_video_size_and_subtitle_pos(self):
         # Fit the video item within the view while maintaining its aspect ratio
         self.video_view.fitInView(self.video_item, Qt.KeepAspectRatio)
 
@@ -170,7 +173,7 @@ class MediaPlayer:
     def setPosition(self, position):
         self.media_player.setPosition(position)
 
-    def mediaStateChanged(self, state):
+    def media_state_changed(self, state):
         icon = (
             QStyle.SP_MediaPause
             if self.media_player.state() == QMediaPlayer.PlayingState
@@ -178,9 +181,10 @@ class MediaPlayer:
         )
         self.play_button.setIcon(self.style.standardIcon(icon))
 
-        self.update_subtitle_pos()
+        if self.media_player.state() == QMediaPlayer.PlayingState:
+            self.adjust_video_size_and_subtitle_pos()
 
-    def positionChanged(self, position):
+    def position_changed(self, position):
         seconds = position / 1000
         minutes, seconds = divmod(seconds, 60)
         hours, minutes = divmod(minutes, 60)
@@ -194,7 +198,7 @@ class MediaPlayer:
         if self.position_changed_callback:
             self.position_changed_callback(position - self.video_offset)
 
-    def durationChanged(self, duration):
+    def duration_changed(self, duration):
         self.position_slider.setRange(0, duration)
 
     def setPosition(self, position):
