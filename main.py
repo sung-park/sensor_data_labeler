@@ -47,7 +47,7 @@ class MyApp(QMainWindow):
         menubar.addMenu(self.create_tool_menu())
         menubar.addMenu(self.create_help_menu())
 
-        self.setWindowTitle("PX Sensor Data Labeler")
+        self.setWindowTitle(f"PX Sensor Data Labeler v{VERSION}")
         self.setGeometry(0, 0, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT)
 
         central_widget = QWidget(self)
