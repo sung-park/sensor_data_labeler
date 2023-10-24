@@ -1,3 +1,4 @@
+import csv
 from datetime import datetime
 import json
 import os
@@ -43,6 +44,7 @@ class MyApp(QMainWindow):
 
         menubar.addMenu(self.create_file_menu())
         menubar.addMenu(self.create_view_menu())
+        menubar.addMenu(self.create_tool_menu())
         menubar.addMenu(self.create_help_menu())
 
         self.setWindowTitle("PX Sensor Data Labeler")
@@ -85,6 +87,19 @@ class MyApp(QMainWindow):
 
         return menu
 
+    def create_tool_menu(self):
+        menu = QMenu("&Tool", self)
+
+        actions = [
+            ("Check Annotation Statistics", self.check_annotation_statistics),
+        ]
+
+        for action_text, action_function in actions:
+            action = QAction(action_text, self, triggered=action_function)
+            menu.addAction(action)
+
+        return menu
+
     def create_view_menu(self) -> QMenu:
         view_modes = ["Single", "Even", "Portrait", "Landscape"]
         menu = QMenu("&View Mode", self)
@@ -104,6 +119,56 @@ class MyApp(QMainWindow):
             action_group.addAction(action)
 
         return menu
+
+    def check_annotation_statistics(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.ShowDirsOnly
+
+        folder_path = QFileDialog.getExistingDirectory(
+            None, "Select Folder", "", options=options
+        )
+
+        if folder_path:
+            print("Selected folder path:", folder_path)
+            ann_files = self.find_ann_files(folder_path)
+
+            total_behavior_durations = {}
+
+            for ann_file in ann_files:
+                behavior_durations = self.calculate_statistics(ann_file)
+                for behavior, duration in behavior_durations.items():
+                    if behavior in total_behavior_durations:
+                        total_behavior_durations[behavior] += duration
+                    else:
+                        total_behavior_durations[behavior] = duration
+
+            stats_popup = StatsDialog(total_behavior_durations, self)
+            stats_popup.exec_()
+
+    def find_ann_files(self, root_folder):
+        ann_files = []
+        for folder, subfolders, files in os.walk(root_folder):
+            for file in files:
+                if file.endswith(".ann"):
+                    ann_files.append(os.path.join(folder, file))
+        return ann_files
+
+    def calculate_statistics(self, ann_file):
+        behavior_durations = {}
+        with open(ann_file, "r", encoding="utf-8") as csvfile:
+            csvreader = csv.reader(csvfile)
+            next(csvreader)
+            for row in csvreader:
+                if len(row) == 3:
+                    start_timestamp, end_timestamp, behavior = row
+                    start_timestamp = int(start_timestamp)
+                    end_timestamp = int(end_timestamp)
+                    duration = end_timestamp - start_timestamp
+                    if behavior in behavior_durations:
+                        behavior_durations[behavior] += duration
+                    else:
+                        behavior_durations[behavior] = duration
+        return behavior_durations
 
     def on_view_mode_changed(self, action):
         if "Single" in action.text():
@@ -461,6 +526,51 @@ class MyApp(QMainWindow):
         if key_event.key() == Qt.Key.Key_Space and not key_event.isAutoRepeat():
             # self.media_player.play()
             self.media_players_manager.play()
+
+
+class StatsDialog(QDialog):
+    def __init__(self, total_behavior_durations, main_window: QMainWindow):
+        super().__init__()
+
+        self.setWindowTitle("Statistics")
+        self.setFixedWidth(int(MAIN_WINDOW_WIDTH / 2))
+
+        text_widget = QPlainTextEdit(self)
+        text_widget.setReadOnly(True)
+
+        layout = QVBoxLayout()
+        layout.addWidget(text_widget)
+        self.setLayout(layout)
+
+        stats_text = ""
+        for behavior, total_duration in total_behavior_durations.items():
+            hours, minutes, seconds, milliseconds = self.milliseconds_to_hms(
+                total_duration
+            )
+            stats_text += f"Behavior: {behavior}, Total Duration: {hours} hours {minutes} minutes {seconds}.{milliseconds} seconds\n"
+
+        text_widget.setPlainText(stats_text)
+
+        self.center(main_window)
+
+    def center(self, main_window: QMainWindow):
+        screen_geometry = main_window.geometry()
+        window_geometry = self.geometry()
+        x = (
+            screen_geometry.left()
+            + (screen_geometry.width() - window_geometry.width()) // 2
+        )
+        y = (
+            screen_geometry.top()
+            + (screen_geometry.height() - window_geometry.height()) // 2
+        )
+        self.move(x, y)
+
+    def milliseconds_to_hms(self, milliseconds):
+        seconds, milliseconds = divmod(milliseconds, 1000)
+        minutes, seconds = divmod(seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+        return hours, minutes, seconds, milliseconds
 
 
 if __name__ == "__main__":
