@@ -58,6 +58,11 @@ class AnnotationManager(AnnotationRoiEventObserver):
     def delete(self, annotation: AnnotationRoi):
         self.annotations.remove(annotation)
 
+    def clear(self):
+        for annotation in self.annotations:
+            annotation.clear()
+        self.annotations.clear()
+
     @log_method_call
     def load_from_csv(self, filename, plot_widget: PlotWidget):
         with open(filename, "r", encoding="utf-8") as csv_file:

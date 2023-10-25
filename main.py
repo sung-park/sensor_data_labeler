@@ -230,6 +230,7 @@ class MyApp(QMainWindow):
         )
 
     def load_annotation_file(self, filename):
+        self.annotation_manager.clear()
         self.annotation_manager.load_from_csv(filename, self.plot_widget)
 
     def save_annotation_file(self):
@@ -265,7 +266,7 @@ class MyApp(QMainWindow):
 
             with open(file_name, "r", encoding="utf-8") as file:
                 lines = file.readlines()
-                data = "".join(lines[:5])
+                data = "".join(lines)
 
             csv_data_text_browser.setPlainText(data)
             csv_data_dialog.adjustSize()
