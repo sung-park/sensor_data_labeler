@@ -5,7 +5,7 @@ import os
 import sys
 from typing import List
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon, QDesktopServices
+from PyQt5.QtGui import QColor, QDesktopServices
 import pandas as pd
 from pyqtgraph import PlotWidget
 import pyqtgraph as pg
@@ -21,6 +21,7 @@ from PyQt5.QtGui import QMouseEvent
 
 from MediaPlayersManager import MediaPlayersManager
 from PopupWindow import TagSelectionDialog
+from StatsDialog import StatsDialog
 from TagsManager import TagsManager
 from config import *
 from util import log_method_call
@@ -529,51 +530,6 @@ class MyApp(QMainWindow):
         if key_event.key() == Qt.Key.Key_Space and not key_event.isAutoRepeat():
             # self.media_player.play()
             self.media_players_manager.play()
-
-
-class StatsDialog(QDialog):
-    def __init__(self, total_behavior_durations, main_window: QMainWindow):
-        super().__init__()
-
-        self.setWindowTitle("Statistics")
-        self.setFixedWidth(int(MAIN_WINDOW_WIDTH / 2))
-
-        text_widget = QPlainTextEdit(self)
-        text_widget.setReadOnly(True)
-
-        layout = QVBoxLayout()
-        layout.addWidget(text_widget)
-        self.setLayout(layout)
-
-        stats_text = ""
-        for behavior, total_duration in total_behavior_durations.items():
-            hours, minutes, seconds, milliseconds = self.milliseconds_to_hms(
-                total_duration
-            )
-            stats_text += f"Behavior: {behavior}, Total Duration: {hours} hours {minutes} minutes {seconds}.{milliseconds} seconds\n"
-
-        text_widget.setPlainText(stats_text)
-
-        self.center(main_window)
-
-    def center(self, main_window: QMainWindow):
-        screen_geometry = main_window.geometry()
-        window_geometry = self.geometry()
-        x = (
-            screen_geometry.left()
-            + (screen_geometry.width() - window_geometry.width()) // 2
-        )
-        y = (
-            screen_geometry.top()
-            + (screen_geometry.height() - window_geometry.height()) // 2
-        )
-        self.move(x, y)
-
-    def milliseconds_to_hms(self, milliseconds):
-        seconds, milliseconds = divmod(milliseconds, 1000)
-        minutes, seconds = divmod(seconds, 60)
-        hours, minutes = divmod(minutes, 60)
-        return hours, minutes, seconds, milliseconds
 
 
 if __name__ == "__main__":
