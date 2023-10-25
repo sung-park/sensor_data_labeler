@@ -33,13 +33,19 @@ class AnnotationManager(AnnotationRoiEventObserver):
         annotation.add_observer(self)
 
     @log_method_call
-    def save_to_csv(self, filename):
+    def save_to_csv(self, filename, x_min: int, x_max: int):
         with open(filename, "w", newline="", encoding="utf-8") as csv_file:
             csv_writer = csv.writer(csv_file)
 
             csv_writer.writerow(["start_timestamp", "end_timestamp", "behavior"])
 
             for annotation in self.annotations:
+                if (annotation.x_start < x_min and annotation.x_end < x_min) or (
+                    annotation.x_start > x_max and annotation.x_end > x_max
+                ):
+                    print(f"{annotation} has been ignored.")
+                    continue
+
                 csv_writer.writerow(
                     [
                         int(annotation.x_start * 1000),

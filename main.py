@@ -253,7 +253,9 @@ class MyApp(QMainWindow):
 
         if file_name:
             print(file_name)
-            self.annotation_manager.save_to_csv(file_name)
+            self.annotation_manager.save_to_csv(
+                file_name, self.x_data.min(), self.x_data.max()
+            )
 
             csv_data_dialog = QDialog(self)
             csv_data_dialog.setWindowTitle(file_name)

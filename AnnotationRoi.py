@@ -103,6 +103,9 @@ class AnnotationRoi:
         self.create_roi()
         self.show()
 
+    def __str__(self) -> str:
+        return f"Annotation(text={self.annotation_text}, x_start={self.x_start}, x_end={self.x_end})"
+
 
 class AnnotationRoiEventObserver:
     @abstractmethod
