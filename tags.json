@@ -53,6 +53,10 @@
                     "description": "사료먹기"
                 },
                 {
+                    "name": "EatingWithoutBowl",
+                    "description": "간식먹기"
+                },
+                {
                     "name": "Drinking",
                     "description": "물마시기"
                 },
