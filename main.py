@@ -136,7 +136,9 @@ class MyApp(QMainWindow):
             total_behavior_durations = {}
 
             for ann_file in ann_files:
-                behavior_durations = self.calculate_statistics(ann_file)
+                behavior_durations = self.annotation_manager.calculate_statistics(
+                    ann_file
+                )
                 for behavior, duration in behavior_durations.items():
                     if behavior in total_behavior_durations:
                         total_behavior_durations[behavior] += duration
@@ -153,23 +155,6 @@ class MyApp(QMainWindow):
                 if file.endswith(".ann"):
                     ann_files.append(os.path.join(folder, file))
         return ann_files
-
-    def calculate_statistics(self, ann_file):
-        behavior_durations = {}
-        with open(ann_file, "r", encoding="utf-8") as csvfile:
-            csvreader = csv.reader(csvfile)
-            next(csvreader)
-            for row in csvreader:
-                if len(row) == 3:
-                    start_timestamp, end_timestamp, behavior = row
-                    start_timestamp = int(start_timestamp)
-                    end_timestamp = int(end_timestamp)
-                    duration = end_timestamp - start_timestamp
-                    if behavior in behavior_durations:
-                        behavior_durations[behavior] += duration
-                    else:
-                        behavior_durations[behavior] = duration
-        return behavior_durations
 
     def on_view_mode_changed(self, action):
         if "Single" in action.text():
@@ -232,7 +217,7 @@ class MyApp(QMainWindow):
 
     def load_annotation_file(self, filename):
         self.annotation_manager.clear()
-        self.annotation_manager.load_from_csv(filename, self.plot_widget)
+        self.annotation_manager.load_from_ann(filename, self.plot_widget)
 
     def save_annotation_file(self):
         if not self.sensor_data_csv_filename:
@@ -255,7 +240,7 @@ class MyApp(QMainWindow):
 
         if file_name:
             print(file_name)
-            self.annotation_manager.save_to_csv(
+            self.annotation_manager.save_to_ann(
                 file_name, self.x_data.min(), self.x_data.max()
             )
 
