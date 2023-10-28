@@ -137,6 +137,9 @@ class MediaPlayer:
     def apply_offset(self):
         self.video_offset = int(self.offset_text_edit.text())
 
+    def get_offset(self):
+        return self.video_offset
+
     def change_offset(self, video_offset: int):
         self.offset_text_edit.setText(str(video_offset))
         self.apply_offset()

@@ -82,8 +82,11 @@ class MediaPlayersManager:
     def set_view_mode_landscape(self):
         self.set_view_mode([(0, 0, 1, 3), (1, 0, 1, 1), (1, 1, 1, 1), (1, 2, 1, 1)])
 
-    def change_offset(self, video_offset):
-        self.media_players[0].change_offset(video_offset)
+    def change_offset(self, offset: int, target_id: int = 0):
+        self.media_players[target_id].change_offset(offset)
 
     def set_subtitle_text(self, text):
         self.media_players[0].set_subtitle_text(text)
+
+    def get_offset(self, target_id: int = 0):
+        return self.media_players[target_id].get_offset()

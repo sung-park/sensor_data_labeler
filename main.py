@@ -217,7 +217,10 @@ class MyApp(QMainWindow):
 
     def load_annotation_file(self, filename):
         self.annotation_manager.clear()
-        self.annotation_manager.load_from_ann(filename, self.plot_widget)
+        offset = self.annotation_manager.load_from_ann(filename, self.plot_widget)
+        if offset is not None:
+            print(f"Change offset to {offset} by ANN meta")
+            self.media_players_manager.change_offset(offset)
 
     def save_annotation_file(self):
         if not self.sensor_data_csv_filename:
@@ -241,22 +244,29 @@ class MyApp(QMainWindow):
         if file_name:
             print(file_name)
             self.annotation_manager.save_to_ann(
-                file_name, self.x_data.min(), self.x_data.max()
+                file_name,
+                self.x_data.min(),
+                self.x_data.max(),
+                self.media_players_manager.get_offset(),
             )
 
-            csv_data_dialog = QDialog(self)
-            csv_data_dialog.setWindowTitle(file_name)
-            csv_data_dialog.setGeometry(400, 400, 640, 240)
-            csv_data_text_browser = QTextBrowser(csv_data_dialog)
-            csv_data_text_browser.setMinimumSize(640, 240)
+            ann_data_dialog = QDialog(self)
+            ann_data_dialog.setWindowTitle(file_name)
+            ann_data_dialog.setGeometry(400, 400, 640, 240)
+
+            ann_data_text_browser = QTextBrowser(ann_data_dialog)
+            ann_data_text_browser.setMinimumSize(640, 240)
+            ann_data_text_browser.setSizePolicy(
+                QSizePolicy.Expanding, QSizePolicy.Expanding
+            )
 
             with open(file_name, "r", encoding="utf-8") as file:
                 lines = file.readlines()
                 data = "".join(lines)
 
-            csv_data_text_browser.setPlainText(data)
-            csv_data_dialog.adjustSize()
-            csv_data_dialog.exec_()
+            ann_data_text_browser.setPlainText(data)
+            ann_data_dialog.adjustSize()
+            ann_data_dialog.exec_()
 
     sensor_data_csv_filename = None
     sensor_data_json_filename = None
