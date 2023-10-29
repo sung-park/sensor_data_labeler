@@ -7,7 +7,7 @@ from util import log_method_call
 
 
 class MediaPlayersManager:
-    def __init__(self, style, main_layout, main_window, update_plot_progress) -> None:
+    def __init__(self, style, layout, main_window, update_plot_progress) -> None:
         grid_layout = QGridLayout()
         self.media_players: List[MediaPlayer] = []
         self.media_players_widgets: List[QWidget] = []
@@ -26,7 +26,7 @@ class MediaPlayersManager:
         self.video_players_widget: QWidget = QWidget(main_window)
         self.video_players_widget.setLayout(grid_layout)
 
-        main_layout.addWidget(self.video_players_widget)
+        layout.addWidget(self.video_players_widget)
 
         self.set_view_mode_single()
 

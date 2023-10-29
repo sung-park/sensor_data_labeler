@@ -5,26 +5,22 @@ import os
 import sys
 from typing import List
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QColor, QDesktopServices
+from PyQt5.QtGui import QDesktopServices
 import pandas as pd
-from pyqtgraph import PlotWidget
 import pyqtgraph as pg
 
-from PyQt5.QtCore import QDir, Qt, QUrl
+from PyQt5.QtCore import QUrl
 from pyqtgraph import InfiniteLine, TextItem
-from PyQt5.QtGui import QKeyEvent
 from AnnotationManager import AnnotationManager
 from AnnotationRoi import AnnotationRoi
 
-from LineInfoPair import LineInfoPair
 from PyQt5.QtGui import QMouseEvent
 
 from MediaPlayersManager import MediaPlayersManager
-from PopupWindow import TagSelectionDialog
+from MyPlotWidget import MyPlotWidget
 from StatsDialog import StatsDialog
 from TagsManager import TagsManager
 from config import *
-from util import log_method_call
 
 
 class MyApp(QMainWindow):
@@ -51,10 +47,16 @@ class MyApp(QMainWindow):
         self.setWindowTitle(f"PX Sensor Data Labeler v{VERSION}")
         self.setGeometry(0, 0, MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT)
 
+        self.root_layout = QVBoxLayout()
+        self.main_layout = QHBoxLayout()
+        self.note_layout = QVBoxLayout()
+
+        self.root_layout.addLayout(self.main_layout)
+        self.root_layout.addLayout(self.note_layout)
+
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
-        self.main_layout = QHBoxLayout()
-        central_widget.setLayout(self.main_layout)
+        central_widget.setLayout(self.root_layout)
 
         self.media_players_manager = MediaPlayersManager(
             self.style(),
@@ -63,7 +65,20 @@ class MyApp(QMainWindow):
             self.update_plot_progress,
         )
 
+        self.add_note_widget()
+
         self.show()
+
+    def add_note_widget(self):
+        note_label = QLabel("Note")
+        note_label.setMaximumHeight(note_label.sizeHint().height())
+
+        self.note_text_edit = QTextEdit()
+        self.note_text_edit.setFixedHeight(
+            5 * self.note_text_edit.fontMetrics().lineSpacing()
+        )
+        self.note_layout.addWidget(note_label)
+        self.note_layout.addWidget(self.note_text_edit)
 
     def create_help_menu(self) -> QMenu:
         menu = QMenu("&Help", self)
@@ -352,20 +367,22 @@ class MyApp(QMainWindow):
             if reply == QMessageBox.Yes:
                 self.load_annotation_file(filename)
 
-    plot_widget: PlotWidget = None
+    plot_widget: MyPlotWidget = None
 
-    roi_start = LineInfoPair("ROI Start")
-    roi_end = LineInfoPair("ROI End")
+    def get_current_progress(self) -> int:
+        return self.current_progress
 
     def plot_data(self):
         if self.plot_widget:
             self.main_layout.removeWidget(self.plot_widget)
 
-        self.plot_widget = PlotWidget(axisItems={"bottom": pg.DateAxisItem()})
+        self.plot_widget = MyPlotWidget(
+            axisItems={"bottom": pg.DateAxisItem()},
+            create_roi_cb=self.create_roi,
+            get_current_progress_cb=self.get_current_progress,
+            change_video_play_state_cb=self.change_video_play_state,
+        )
         self.plot_widget.setMenuEnabled(False)
-
-        self.roi_start.set_plot_widget(self.plot_widget)
-        self.roi_end.set_plot_widget(self.plot_widget)
 
         self.plot_widget.setLabel("left", "Acc (X:Red, Y:Green, Z:Blue)")
         self.plot_widget.setLabel("bottom", "Time")
@@ -447,84 +464,22 @@ class MyApp(QMainWindow):
         )
         self.media_players_manager.set_subtitle_text(subtitle_text)
 
-    @log_method_call
-    def on_roi_start_pressed(self):
-        if not self.roi_start.is_marked():
-            self.roi_start.mark(self.current_progress)
-        elif self.roi_start.getXPos() == self.current_progress:
-            self.roi_start.clear()
-        else:
-            self.roi_start.set_pos(self.current_progress)
-        self.validate_roi_position()
-
-    @log_method_call
-    def on_roi_end_pressed(self):
-        if not self.roi_end.is_marked():
-            self.roi_end.mark(self.current_progress)
-        elif self.roi_end.getXPos() == self.current_progress:
-            self.roi_end.clear()
-        else:
-            self.roi_end.set_pos(self.current_progress)
-        self.validate_roi_position()
-
     tags_manager = TagsManager()
 
-    @log_method_call
-    def on_mark_pressed(self):
-        if not self.roi_start.is_marked() or not self.roi_end.is_marked():
-            return
-
-        popup = TagSelectionDialog(self.tags_manager.get_tags())
-        x = self.geometry().center().x() - popup.width() / 2
-        y = self.geometry().center().y() - popup.height() / 2
-        popup.move(int(x), int(y))
-        result = popup.exec_()
-
-        if result == QDialog.Accepted:
-            selected_item = popup.selected_item
-            print("Selected item:", selected_item)
-        else:
-            return
-
+    def create_roi(
+        self, widget: QWidget, roi_x_start: int, roi_x_end: int, description: str
+    ):
         self.annotation_manager.add(
             AnnotationRoi(
-                self.plot_widget,
-                self.roi_start.getXPos(),
-                self.roi_end.getXPos(),
-                selected_item,
+                widget,
+                roi_x_start,
+                roi_x_end,
+                description,
             )
         )
 
-        self.roi_start.clear()
-        self.roi_end.clear()
-
-    def validate_roi_position(self):
-        if (
-            self.roi_start.is_marked()
-            and self.roi_end.is_marked()
-            and self.roi_end.getXPos() <= self.roi_start.getXPos()
-        ):
-            QMessageBox.about(
-                self, "Warning", "ROI End time cannot be earlier than ROI Start time."
-            )
-            self.roi_start.clear()
-            self.roi_end.clear()
-
-    def keyReleaseEvent(self, key_event: QKeyEvent) -> None:
-        if key_event.key() == Qt.Key.Key_S and not key_event.isAutoRepeat():
-            self.on_roi_start_pressed()
-            # print("S released")
-
-        if key_event.key() == Qt.Key.Key_E and not key_event.isAutoRepeat():
-            self.on_roi_end_pressed()
-            # print("E released")
-
-        if key_event.key() == Qt.Key.Key_M and not key_event.isAutoRepeat():
-            self.on_mark_pressed()
-
-        if key_event.key() == Qt.Key.Key_Space and not key_event.isAutoRepeat():
-            # self.media_player.play()
-            self.media_players_manager.play()
+    def change_video_play_state(self):
+        self.media_players_manager.play()
 
 
 if __name__ == "__main__":
