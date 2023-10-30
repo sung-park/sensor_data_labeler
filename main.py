@@ -322,14 +322,18 @@ class MyApp(QMainWindow):
 
         self.open_video(video_filename)
 
+        self.apply_offset_if_needed(csv_filename)
         self.sensor_data_csv_filename = csv_filename
+
+        self.note_text_edit.clear()
+
         self.ask_and_open_annotation_file(
             self.sensor_data_csv_filename.replace("csv", "ann")
         )
 
-        self.apply_offset_if_needed(csv_filename)
-
     def apply_offset_if_needed(self, csv_filename):
+        self.media_players_manager.change_offset(0)
+
         self.sensor_data_json_filename = csv_filename.replace(".csv", ".json")
         if os.path.isfile(self.sensor_data_json_filename):
             with open(
