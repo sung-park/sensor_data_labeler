@@ -473,7 +473,7 @@ class MyApp(QMainWindow):
         annotations: List[AnnotationRoi] = self.annotation_manager.get_annotations(
             self.current_progress
         )
-        subtitle_text = "/".join(
+        subtitle_text = "\n".join(
             annotation.annotation_text.split("::")[2] for annotation in annotations
         )
         self.media_players_manager.set_subtitle_text(subtitle_text)

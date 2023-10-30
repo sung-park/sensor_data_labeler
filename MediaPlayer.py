@@ -24,9 +24,10 @@ class MediaPlayer:
     def set_subtitle_text(self, text: str):
         if text == self.subtitle_text:
             return
-        self.subtitle_text = text
 
-        self.subtitle_item.setPlainText(text)
+        self.subtitle_text = text
+        self.subtitle_item.setPlainText(self.subtitle_text)
+
         self.update_subtitle_pos()
         self.subtitle_background_rect.setRect(self.subtitle_item.boundingRect())
 
@@ -39,6 +40,8 @@ class MediaPlayer:
         self.video_scene.addItem(self.video_item)
         self.video_scene.addItem(self.create_subtitle_item_group())
         self.video_view = QGraphicsView(self.video_scene)
+        self.video_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.video_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.create_media_player()
 
@@ -107,7 +110,7 @@ class MediaPlayer:
     def create_subtitle_item_group(self):
         self.subtitle_item = QGraphicsTextItem()
         self.subtitle_item.setDefaultTextColor(Qt.red)
-        self.subtitle_item.setFont(QFont("Arial", 12, QFont.Bold))
+        self.subtitle_item.setFont(QFont("Arial", 10, QFont.Bold))
 
         self.subtitle_background_rect = QGraphicsRectItem(
             self.subtitle_item.boundingRect()
@@ -123,8 +126,11 @@ class MediaPlayer:
 
     def update_subtitle_pos(self):
         # Get the scene rectangle and bounding rectangle of the subtitle item
-        scene_rect = self.video_scene.sceneRect()
+        scene_rect = self.video_item.boundingRect()
+        # scene_rect = self.video_scene.sceneRect()
+        print(f"scene_rect: {scene_rect}")
         subtitle_rect = self.subtitle_item.boundingRect()
+        print(f"subtitle_rect: {subtitle_rect}")
 
         # Calculate the x and y positions to center the subtitle
         x_pos = (scene_rect.width() - subtitle_rect.width()) / 2
