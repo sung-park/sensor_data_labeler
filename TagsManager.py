@@ -1,4 +1,6 @@
 import json
+import os
+import sys
 
 
 class TagsManager:
@@ -14,7 +16,7 @@ class TagsManager:
         self.tags = []
         self.types = []
 
-        with open("tags.json", "r", encoding="UTF8") as file:
+        with open(resource_path("tags.json"), "r", encoding="UTF8") as file:
             config_data = json.load(file)
 
             for tag_type in config_data["types"]:
@@ -42,3 +44,14 @@ class TagsManager:
 
     def get_num_of_tags(self):
         return len(self.tags)
+
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
