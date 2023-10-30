@@ -126,11 +126,9 @@ class MediaPlayer:
 
     def update_subtitle_pos(self):
         # Get the scene rectangle and bounding rectangle of the subtitle item
-        scene_rect = self.video_item.boundingRect()
         # scene_rect = self.video_scene.sceneRect()
-        print(f"scene_rect: {scene_rect}")
+        scene_rect = self.video_item.boundingRect()
         subtitle_rect = self.subtitle_item.boundingRect()
-        print(f"subtitle_rect: {subtitle_rect}")
 
         # Calculate the x and y positions to center the subtitle
         x_pos = (scene_rect.width() - subtitle_rect.width()) / 2

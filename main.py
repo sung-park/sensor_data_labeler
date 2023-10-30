@@ -192,9 +192,13 @@ class MyApp(QMainWindow):
 
     def export_csv_with_annotation(self):
         sensor_data_df = pd.read_csv(self.sensor_data_csv_filename, encoding="UTF8")
-        annotation_df = pd.read_csv(
-            self.sensor_data_csv_filename.replace(".csv", ".ann"), encoding="UTF8"
-        )
+
+        with open(
+            self.sensor_data_csv_filename.replace(".csv", ".ann"), "r", encoding="utf8"
+        ) as file:
+            data = json.load(file)
+        annotations = data["annotations"]
+        annotation_df = pd.DataFrame(annotations)
 
         for index, annotation_row in annotation_df.iterrows():
             start_timestamp = annotation_row["start_timestamp"]
