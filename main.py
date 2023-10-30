@@ -77,6 +77,9 @@ class MyApp(QMainWindow):
         self.note_text_edit.setFixedHeight(
             5 * self.note_text_edit.fontMetrics().lineSpacing()
         )
+        self.note_text_edit.setPlaceholderText(
+            "(Sean) The screen is too dark for me to see, so sensor labeling is impossible."
+        )
         self.note_layout.addWidget(note_label)
         self.note_layout.addWidget(self.note_text_edit)
 
@@ -232,10 +235,11 @@ class MyApp(QMainWindow):
 
     def load_annotation_file(self, filename):
         self.annotation_manager.clear()
-        offset = self.annotation_manager.load_from_ann(filename, self.plot_widget)
+        offset, note = self.annotation_manager.load_from_ann(filename, self.plot_widget)
         if offset is not None:
             print(f"Change offset to {offset} by ANN meta")
             self.media_players_manager.change_offset(offset)
+        self.note_text_edit.setText(note)
 
     def save_annotation_file(self):
         if not self.sensor_data_csv_filename:
@@ -263,6 +267,7 @@ class MyApp(QMainWindow):
                 self.x_data.min(),
                 self.x_data.max(),
                 self.media_players_manager.get_offset(),
+                self.note_text_edit.toPlainText(),
             )
 
             ann_data_dialog = QDialog(self)
@@ -306,37 +311,21 @@ class MyApp(QMainWindow):
 
         print("Input CSV filename:", csv_filename)
         print("Input MP4 filename:", video_filename)
-        self.sensor_df = pd.read_csv(csv_filename, sep=",", header=0)
 
-        column_names = [col.strip() for col in self.sensor_df.columns]
-        column_names_str = ", ".join(column_names)
-        print("CSV Columns:", column_names_str)
-
-        self.x_data = self.sensor_df["timestamp"] / 1000.0
-        # print(self.x_data)
-        self.y_acc_x_data = self.sensor_df["acc_x"]
-        self.y_acc_y_data = self.sensor_df["acc_y"]
-        self.y_acc_z_data = self.sensor_df["acc_z"]
-        self.y_data_min = min(
-            self.y_acc_x_data.min(), self.y_acc_y_data.min(), self.y_acc_z_data.min()
-        )
-        self.y_data_max = max(
-            self.y_acc_x_data.max(), self.y_acc_y_data.max(), self.y_acc_z_data.max()
-        )
+        self.parse_sensor_data(csv_filename)
 
         self.plot_data()
-        self.media_players_manager.open_video_file(0, video_filename)
-        # self.media_player.open_video_file(video_filename)
 
-        # Trick to display the first frame of a video
-        self.media_players_manager.play()
-        self.media_players_manager.play()
+        self.open_video(video_filename)
 
         self.sensor_data_csv_filename = csv_filename
         self.ask_and_open_annotation_file(
             self.sensor_data_csv_filename.replace("csv", "ann")
         )
 
+        self.apply_offset_if_needed(csv_filename)
+
+    def apply_offset_if_needed(self, csv_filename):
         self.sensor_data_json_filename = csv_filename.replace(".csv", ".json")
         if os.path.isfile(self.sensor_data_json_filename):
             with open(
@@ -353,6 +342,31 @@ class MyApp(QMainWindow):
                     )
                 except json.JSONDecodeError:
                     print("Unable to parse the JSON file.")
+
+    def open_video(self, video_filename):
+        self.media_players_manager.open_video_file(0, video_filename)
+        # self.media_player.open_video_file(video_filename)
+
+        # Trick to display the first frame of a video
+        self.media_players_manager.play()
+        self.media_players_manager.play()
+
+    def parse_sensor_data(self, csv_filename):
+        self.sensor_df = pd.read_csv(csv_filename, sep=",", header=0)
+        column_names = [col.strip() for col in self.sensor_df.columns]
+        column_names_str = ", ".join(column_names)
+        print("CSV Columns:", column_names_str)
+
+        self.x_data = self.sensor_df["timestamp"] / 1000.0
+        self.y_acc_x_data = self.sensor_df["acc_x"]
+        self.y_acc_y_data = self.sensor_df["acc_y"]
+        self.y_acc_z_data = self.sensor_df["acc_z"]
+        self.y_data_min = min(
+            self.y_acc_x_data.min(), self.y_acc_y_data.min(), self.y_acc_z_data.min()
+        )
+        self.y_data_max = max(
+            self.y_acc_x_data.max(), self.y_acc_y_data.max(), self.y_acc_z_data.max()
+        )
 
     def ask_and_open_annotation_file(self, filename):
         if os.path.exists(filename):

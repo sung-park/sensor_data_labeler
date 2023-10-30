@@ -35,7 +35,14 @@ class AnnotationManager(AnnotationRoiEventObserver):
         annotation.add_observer(self)
 
     @log_method_call
-    def save_to_ann(self, filename, x_min: int, x_max: int, offset: int):
+    def save_to_ann(
+        self,
+        filename,
+        x_min: int,
+        x_max: int,
+        offset: int,
+        note_plain_text: str,
+    ):
         ann_data = []
         for annotation in self.annotations:
             if (annotation.x_start < x_min and annotation.x_end < x_min) or (
@@ -55,6 +62,7 @@ class AnnotationManager(AnnotationRoiEventObserver):
             "annotations": ann_data,
             "meta": {
                 "offset": offset,
+                "note": note_plain_text,
             },
         }
         with open(filename, "w", encoding="utf-8") as jsonf:
@@ -127,7 +135,7 @@ class AnnotationManager(AnnotationRoiEventObserver):
             print(f"Converted '{csv_filename}' to '{csv_filename}' successfully.")
 
     @log_method_call
-    def load_from_ann(self, filename, plot_widget: PlotWidget) -> int:
+    def load_from_ann(self, filename, plot_widget: PlotWidget) -> (int, str):
         self.convert_csv_to_json_if_needed(filename)
 
         with open(filename, "r", encoding="utf-8") as ann_file:
@@ -147,7 +155,10 @@ class AnnotationManager(AnnotationRoiEventObserver):
                     )
                 )
 
-            return data.get("meta", {}).get("offset", None)
+            return (
+                data.get("meta", {}).get("offset", None),
+                data.get("meta", {}).get("note", None),
+            )
 
     def is_overlapping(self, annotation1: AnnotationRoi, annotation2: AnnotationRoi):
         # Implement the logic to check if two annotations are overlapping
