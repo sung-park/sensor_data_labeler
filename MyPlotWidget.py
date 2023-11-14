@@ -3,6 +3,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox, QDialog
 from PopupWindow import TagSelectionDialog
 from TagsManager import TagsManager
+from config import NAVIGATION_KEY_OFFSET
 
 from util import log_method_call
 from LineInfoPair import LineInfoPair
@@ -17,6 +18,7 @@ class MyPlotWidget(PlotWidget):
         get_current_progress_cb,
         create_roi_cb,
         change_video_play_state_cb,
+        update_video_progress,
         parent=None,
         background="default",
         plotItem=None,
@@ -27,6 +29,7 @@ class MyPlotWidget(PlotWidget):
         self.get_current_progress_cb = get_current_progress_cb
         self.create_roi_cb = create_roi_cb
         self.change_video_play_state_cb = change_video_play_state_cb
+        self.update_video_progress = update_video_progress
         self.roi_start.set_plot_widget(self)
         self.roi_end.set_plot_widget(self)
 
@@ -42,6 +45,16 @@ class MyPlotWidget(PlotWidget):
 
         if key_event.key() == Qt.Key.Key_Space and not key_event.isAutoRepeat():
             self.change_video_play_state_cb()
+
+        if key_event.key() == Qt.Key.Key_Left:  # and not key_event.isAutoRepeat():
+            self.update_video_progress(
+                self.get_current_progress_cb() - NAVIGATION_KEY_OFFSET
+            )
+
+        if key_event.key() == Qt.Key.Key_Right:  # and not key_event.isAutoRepeat():
+            self.update_video_progress(
+                self.get_current_progress_cb() + NAVIGATION_KEY_OFFSET
+            )
 
     @log_method_call
     def on_roi_start_pressed(self):

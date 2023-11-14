@@ -395,6 +395,13 @@ class MyApp(QMainWindow):
     def get_current_progress(self) -> int:
         return self.current_progress
 
+    def update_video_progress(self, position):
+        delta = position - self.x_data.min()
+        if delta < 0:
+            delta = 0.0
+
+        self.media_players_manager.set_position(int(delta * 1000.0))
+
     def plot_data(self):
         if self.plot_widget:
             self.main_layout.removeWidget(self.plot_widget)
@@ -404,6 +411,7 @@ class MyApp(QMainWindow):
             create_roi_cb=self.create_roi,
             get_current_progress_cb=self.get_current_progress,
             change_video_play_state_cb=self.change_video_play_state,
+            update_video_progress=self.update_video_progress,
         )
 
         self.plot_widget.setBackground(PLOT_WIDGET_BG_COLOR)
@@ -492,6 +500,8 @@ class MyApp(QMainWindow):
         y_min, y_max = self.plot_widget.getAxis("left").range
         self.plot_widget_progress_text.setPos(self.current_progress, y_max - 2)
 
+        self.update_plot_widget_x_range_if_needed()
+
         datetime_obj = datetime.fromtimestamp(self.current_progress)
         formatted_datetime = datetime_obj.strftime("%H:%M:%S.%f")[
             :-3
@@ -508,6 +518,15 @@ class MyApp(QMainWindow):
         self.media_players_manager.set_subtitle_text(subtitle_text)
 
     tags_manager = TagsManager()
+
+    def update_plot_widget_x_range_if_needed(self):
+        x_min, x_max = self.plot_widget.getAxis("bottom").range
+
+        if self.current_progress < x_min or self.current_progress > x_max:
+            current_range = x_max - x_min
+            new_x_min = self.current_progress - (current_range / 2)
+            new_x_max = self.current_progress + (current_range / 2)
+            self.plot_widget.setXRange(new_x_min, new_x_max)
 
     def create_roi(
         self, widget: QWidget, roi_x_start: int, roi_x_end: int, description: str
