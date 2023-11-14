@@ -61,10 +61,6 @@
                     "description": "물마시기"
                 },
                 {
-                    "name": "Walking",
-                    "description": "걷기"
-                },
-                {
                     "name": "Sniffing",
                     "description": "냄새맡기"
                 },
