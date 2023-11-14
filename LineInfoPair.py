@@ -1,4 +1,7 @@
 from pyqtgraph import InfiniteLine, TextItem, PlotWidget
+from PyQt5.QtGui import QFont
+
+from config import ROI_MARK_PEN_COLOR
 
 
 class LineInfoPair:
@@ -17,9 +20,16 @@ class LineInfoPair:
         return self.infinite_line is not None
 
     def mark(self, position):
-        self.infinite_line = InfiniteLine(pos=(position, 0), angle=90, pen="#FFFFFF")
+        self.infinite_line = InfiniteLine(
+            pos=(position, 0),
+            angle=90,
+            pen=ROI_MARK_PEN_COLOR,
+        )
 
-        self.text_item = TextItem(self.description, color="#FFFFFF")
+        font = QFont()
+        font.setBold(True)
+        self.text_item = TextItem(self.description, color=ROI_MARK_PEN_COLOR)
+        self.text_item.setFont(font)
         self.text_item.setPos(position, -5)
 
         self.plot_widget.addItem(self.infinite_line)

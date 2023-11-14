@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QDesktopServices
 import pandas as pd
 import pyqtgraph as pg
+from pyqtgraph.Qt import QtGui
 
 from PyQt5.QtCore import QUrl
 from pyqtgraph import InfiniteLine, TextItem
@@ -404,14 +405,30 @@ class MyApp(QMainWindow):
             get_current_progress_cb=self.get_current_progress,
             change_video_play_state_cb=self.change_video_play_state,
         )
+
+        self.plot_widget.setBackground(PLOT_WIDGET_BG_COLOR)
+
         self.plot_widget.setMenuEnabled(False)
 
-        self.plot_widget.setLabel("left", "Acc (X:Red, Y:Green, Z:Blue)")
+        self.plot_widget.setLabel("left", "Acc ")
         self.plot_widget.setLabel("bottom", "Time")
 
-        self.plot_widget.plot(self.x_data, self.y_acc_x_data, pen="r")
-        self.plot_widget.plot(self.x_data, self.y_acc_y_data, pen="g")
-        self.plot_widget.plot(self.x_data, self.y_acc_z_data, pen="b")
+        thickness = 1
+        self.plot_widget.plot(
+            self.x_data,
+            self.y_acc_x_data,
+            pen={"color": (128, 128, 128), "width": thickness},
+        )
+        self.plot_widget.plot(
+            self.x_data,
+            self.y_acc_y_data,
+            pen={"color": (0, 0, 128), "width": thickness},
+        )
+        self.plot_widget.plot(
+            self.x_data,
+            self.y_acc_z_data,
+            pen={"color": (34, 139, 34), "width": thickness},
+        )
 
         # Limit zooming out of the data area
         view_box = self.plot_widget.getViewBox()
@@ -433,10 +450,14 @@ class MyApp(QMainWindow):
 
         self.plot_widget_data_start_timestamp = self.x_data.min()
         self.plot_widget_progress_line = InfiniteLine(
-            pos=(self.plot_widget_data_start_timestamp, 0), angle=90, pen="#eb34d5"
+            pos=(self.plot_widget_data_start_timestamp, 0),
+            angle=90,
+            pen={"color": PROGRESS_LINE_COLOR, "width": PROGRESS_LINE_WIDTH},
         )
         y_min, y_max = self.plot_widget.getAxis("left").range
-        self.plot_widget_progress_text = TextItem(text="Video Sync", color="#eb34d5")
+        self.plot_widget_progress_text = TextItem(
+            text="Video Sync", color=PROGRESS_LINE_COLOR
+        )
         # self.plot_widget_progress_text.setPos(y_max - 10, 0)
 
         self.plot_widget.addItem(self.plot_widget_progress_line)

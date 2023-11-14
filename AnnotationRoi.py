@@ -6,8 +6,8 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMenu, QAction
 from PyQt5.QtGui import QCursor
 from TagsManager import TagsManager
-from config import TAGS_HEIGHT
-
+from config import ROI_HOVER_PEN_COLOR, ROI_PEN_COLOR, TAGS_HEIGHT
+from PyQt5.QtGui import QFont
 from util import log_method_call
 
 
@@ -46,7 +46,8 @@ class AnnotationRoi:
                 self.x_end - self.x_start,
                 TAGS_HEIGHT * 0.9,
             ],
-            pen="y",
+            pen=ROI_PEN_COLOR,
+            hoverPen=ROI_HOVER_PEN_COLOR,
             movable=False,
             resizable=False,
             rotatable=False,
@@ -54,9 +55,15 @@ class AnnotationRoi:
         # print("zValue:", self.plot_widget.zValue() + 1)
         self.roi.setZValue(10)
 
+        font = QFont()
+        font.setBold(True)
         self.text_item = pg.TextItem(
-            text=self.annotation_text.split("::")[2], anchor=(0.5, 0.5), color="y"
+            text=self.annotation_text.split("::")[2],
+            anchor=(0.5, 0.5),
+            color=ROI_PEN_COLOR,
         )
+        self.text_item.setFont(font)
+
         roi_rect = self.roi.boundingRect()
         self.text_item.setPos(
             self.x_start + roi_rect.center().x(),
