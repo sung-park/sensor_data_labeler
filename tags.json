@@ -115,6 +115,95 @@
             ]
         },
         {
+            "name": "Activity2",
+            "tags": [
+                {
+                    "name": "Running",
+                    "description": "뛰기"
+                },
+                {
+                    "name": "Trotting",
+                    "description": "빠르게걷기"
+                },
+                {
+                    "name": "Walking",
+                    "description": "걷기"
+                },
+                {
+                    "name": "Roaming",
+                    "description": "어슬렁거리기(느리게걷기)"
+                },
+                {
+                    "name": "Jumping",
+                    "description": "점프하기"
+                },
+                {
+                    "name": "Eating",
+                    "description": "사료먹기"
+                },
+                {
+                    "name": "EatingWithoutBowl",
+                    "description": "간식먹기"
+                },
+                {
+                    "name": "Drinking",
+                    "description": "물마시기"
+                },
+                {
+                    "name": "Sniffing",
+                    "description": "냄새맡기"
+                },
+                {
+                    "name": "Licking",
+                    "description": "물체핥기"
+                },
+                {
+                    "name": "Grooming",
+                    "description": "자기자신핥기"
+                },
+                {
+                    "name": "ScratchObject",
+                    "description": "물체긁기"
+                },
+                {
+                    "name": "ScratchSelf",
+                    "description": "자신긁기"
+                },
+                {
+                    "name": "Shedding",
+                    "description": "털기"
+                },
+                {
+                    "name": "Poopoing",
+                    "description": "대변"
+                },
+                {
+                    "name": "Peeing",
+                    "description": "소변"
+                },
+                {
+                    "name": "PlayWithToys",
+                    "description": "장난감놀이"
+                },
+                {
+                    "name": "Sleeping",
+                    "description": "수면"
+                },
+                {
+                    "name": "Petting",
+                    "description": "보호자가쓰다듬음"
+                },
+                {
+                    "name": "Etc",
+                    "description": "기타"
+                },
+                {
+                    "name": "Uncertain",
+                    "description": "불확실함"
+                }
+            ]
+        },
+        {
             "name": "Sound",
             "tags": [
                 {

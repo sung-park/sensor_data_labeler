@@ -26,7 +26,23 @@ class MediaPlayer:
             return
 
         self.subtitle_text = text
-        self.subtitle_item.setPlainText(self.subtitle_text)
+        tags = self.subtitle_text.split("\n")
+        # self.subtitle_item.setPlainText(self.subtitle_text)
+        html_text = ""
+        for tag in tags:
+            if "::" not in tag:
+                continue
+
+            words = tag.split("::")
+            html_text = (
+                html_text
+                + f'<span style="font-size: 12pt;">{words[1]}</span><span style="font-size: 6pt;">({words[0]})</span>'
+                + "<br>"
+            )
+        if html_text.endswith("<br>"):
+            html_text = html_text[:-4]
+
+        self.subtitle_item.setHtml(html_text)
 
         self.update_subtitle_pos()
         self.subtitle_background_rect.setRect(self.subtitle_item.boundingRect())
