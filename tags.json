@@ -99,6 +99,18 @@
                 {
                     "name": "Sleeping",
                     "description": "수면"
+                },
+                {
+                    "name": "Petting",
+                    "description": "보호자가쓰다듬음"
+                },
+                {
+                    "name": "Etc",
+                    "description": "기타"
+                },
+                {
+                    "name": "Uncertain",
+                    "description": "불확실함"
                 }
             ]
         },
