@@ -19,9 +19,11 @@ from PyQt5.QtGui import QMouseEvent
 
 from MediaPlayersManager import MediaPlayersManager
 from MyPlotWidget import MyPlotWidget
+from PreferencesDialog import PreferencesDialog
 from StatsDialog import StatsDialog
 from TagsManager import TagsManager
 from config import *
+from PreferencesDialog import *
 
 
 class MyApp(QMainWindow):
@@ -31,6 +33,7 @@ class MyApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.init_ui()
+        self.preferences_dialog = PreferencesDialog()
 
     def init_ui(self):
         print("initUI...")
@@ -99,6 +102,7 @@ class MyApp(QMainWindow):
             ("Open CSV Data File", self.open_data_file),
             ("Save Annotation File", self.save_annotation_file),
             ("Export CSV Data File With Annotation", self.export_csv_with_annotation),
+            ("Preferences", self.open_preferences),
         ]
 
         for action_text, action_function in actions:
@@ -190,6 +194,14 @@ class MyApp(QMainWindow):
             "https://github.com/sung-park/sensor_data_labeler/blob/main/SHORTCUTS_REF.md"
         )
         QDesktopServices.openUrl(url)
+
+    def open_preferences(self):
+        # self.preferences_dialog = PreferencesDialog()
+        self.preferences_dialog.center(self)
+        if self.preferences_dialog.exec_():
+            preferences = self.preferences_dialog.get_preferences()
+            print("Preferences:", preferences)
+            self.preferences_dialog.save_preferences()
 
     def export_csv_with_annotation(self):
         sensor_data_df = pd.read_csv(self.sensor_data_csv_filename, encoding="UTF8")
@@ -500,7 +512,8 @@ class MyApp(QMainWindow):
         y_min, y_max = self.plot_widget.getAxis("left").range
         self.plot_widget_progress_text.setPos(self.current_progress, y_max - 2)
 
-        self.update_plot_widget_x_range_if_needed()
+        if self.preferences_dialog.get_preference(OPTION_PLOT_AUTO_SCROLL):
+            self.update_plot_widget_x_range_if_needed()
 
         datetime_obj = datetime.fromtimestamp(self.current_progress)
         formatted_datetime = datetime_obj.strftime("%H:%M:%S.%f")[
