@@ -17,6 +17,8 @@ class MediaPlayer:
         self.rotation_degree = 0
         self.video_offset = 0
         self.subtitle_text = None
+        self.play_speed_list = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+        self.play_speed_current_id = 3
 
     def add_position_changed_observer(self, observer):
         self.position_changed_callback = observer
@@ -107,6 +109,14 @@ class MediaPlayer:
         self.rotate_button.clicked.connect(self.rotate_clicked)
         self.rotate_button.setFocusPolicy(Qt.NoFocus)
 
+        self.play_speed_button = QPushButton()
+        self.play_speed_button.setEnabled(True)
+        self.play_speed_button.setText(
+            str(self.play_speed_list[self.play_speed_current_id])
+        )
+        self.play_speed_button.clicked.connect(self.playspeed_clicked)
+        self.play_speed_button.setFocusPolicy(Qt.NoFocus)
+
         self.position_slider = QSlider(Qt.Horizontal)
         self.position_slider.setRange(0, 0)
         self.position_slider.sliderMoved.connect(self.setPosition)
@@ -118,6 +128,7 @@ class MediaPlayer:
         control_layout.setContentsMargins(0, 0, 0, 0)
         control_layout.addWidget(self.play_button)
         control_layout.addWidget(self.rotate_button)
+        control_layout.addWidget(self.play_speed_button)
         control_layout.addWidget(self.position_slider)
         control_layout.addWidget(self.open_video_button)
 
@@ -163,6 +174,17 @@ class MediaPlayer:
     def change_offset(self, video_offset: int):
         self.offset_text_edit.setText(str(video_offset))
         self.apply_offset()
+
+    def playspeed_clicked(self):
+        self.play_speed_current_id = self.play_speed_current_id + 1
+        if self.play_speed_current_id >= len(self.play_speed_list):
+            self.play_speed_current_id = 0
+
+        new_play_speed = self.play_speed_list[self.play_speed_current_id]
+        self.play_speed_button.setText(str(new_play_speed))
+
+        self.media_player.setPlaybackRate(new_play_speed)
+        print(f"Speed: {new_play_speed}")
 
     def rotate_clicked(self):
         self.rotate_video()
