@@ -34,6 +34,7 @@ class MyApp(QMainWindow):
         super().__init__()
         self.init_ui()
         self.preferences_dialog = PreferencesDialog()
+        self.annotation_manager.set_window(self)
 
     def init_ui(self):
         print("initUI...")

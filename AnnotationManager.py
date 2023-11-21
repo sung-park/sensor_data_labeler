@@ -5,6 +5,7 @@ from AnnotationRoi import AnnotationRoi, AnnotationRoiEventObserver
 import csv
 from pyqtgraph import PlotWidget
 from util import log_method_call
+from PyQt5.QtWidgets import QMainWindow, QMessageBox
 
 
 class AnnotationManager(AnnotationRoiEventObserver):
@@ -12,6 +13,9 @@ class AnnotationManager(AnnotationRoiEventObserver):
         pass
 
     annotations: List[AnnotationRoi] = []
+
+    def set_window(self, window: QMainWindow):
+        self.window = window
 
     @log_method_call
     def add(self, annotation: AnnotationRoi):
@@ -24,6 +28,19 @@ class AnnotationManager(AnnotationRoiEventObserver):
                 and self.is_overlapping(existing_annotation, annotation)
             ):
                 overlapping_annotations.append(existing_annotation)
+
+        if overlapping_annotations:
+            reply = QMessageBox.question(
+                self.window,
+                "Overlap Confirmation",
+                f"There are overlapping {len(overlapping_annotations)} annotations. Do you want to continue?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            )
+
+            if reply == QMessageBox.No:
+                annotation.delete_roi(None)
+                return
 
         # Update overlapping annotations
         for overlapping_annotation in overlapping_annotations:
