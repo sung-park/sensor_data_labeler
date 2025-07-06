@@ -17,10 +17,12 @@ from AnnotationRoi import AnnotationRoi
 
 from PyQt5.QtGui import QMouseEvent
 
+import AppInitializer
 from MediaPlayersManager import MediaPlayersManager
 from MyPlotWidget import MyPlotWidget
 from PreferencesDialog import PreferencesDialog
 from StatsDialog import StatsDialog
+import TCNInferenceManager
 from TagsManager import TagsManager
 from config import *
 from PreferencesDialog import *
@@ -29,12 +31,14 @@ from PreferencesDialog import *
 class MyApp(QMainWindow):
     media_players_manager: MediaPlayersManager = None
     annotation_manager = AnnotationManager()
+    tcn_inference_manager: TCNInferenceManager = None
 
-    def __init__(self):
+    def __init__(self, tcn_manager: TCNInferenceManager = None):
         super().__init__()
         self.init_ui()
         self.preferences_dialog = PreferencesDialog()
         self.annotation_manager.set_window(self)
+        self.tcn_inference_manager = tcn_manager
 
     def init_ui(self):
         print("initUI...")
@@ -332,6 +336,9 @@ class MyApp(QMainWindow):
 
         self.parse_sensor_data(csv_filename)
 
+        if self.tcn_inference_manager:
+            self.tcn_inference_manager.perform_inference_on_data(self.sensor_df)
+        
         self.plot_data()
 
         self.open_video(video_filename)
@@ -530,6 +537,21 @@ class MyApp(QMainWindow):
             f"{annotation.annotation_text.split('::')[0]}::{annotation.annotation_text.split('::')[2]}"
             for annotation in annotations
         )
+
+        current_progress_ms = int(self.current_progress * 1000) 
+        predicted_behavior_tcn = ""
+
+        if self.tcn_inference_manager: # Check if TCN manager is initialized
+            predicted_behavior_tcn = self.tcn_inference_manager.get_predicted_behavior_at_timestamp(
+                current_progress_ms
+            )
+            # Only append if a valid prediction is found
+            if not predicted_behavior_tcn.startswith("N/A"): 
+                # Add a newline if there's already annotation text
+                if subtitle_text:
+                    subtitle_text += "\n"
+                subtitle_text += f"{predicted_behavior_tcn}"
+
         self.media_players_manager.set_subtitle_text(subtitle_text)
 
     tags_manager = TagsManager()
@@ -561,5 +583,9 @@ class MyApp(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    ex = MyApp()
+
+    app_initializer = AppInitializer.AppInitializer()
+    tcn_manager_instance = app_initializer.get_tcn_inference_manager()
+
+    ex = MyApp(tcn_manager_instance)
     sys.exit(app.exec_())
